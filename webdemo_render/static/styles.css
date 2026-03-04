@@ -97,6 +97,10 @@ h2 {
   color: var(--muted);
 }
 
+.load-example-cta {
+  margin: 2px 0 12px;
+}
+
 .drop-zone {
   display: grid;
   place-items: center;
@@ -268,7 +272,7 @@ button:disabled {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #9a9a9a;
+  background: #22a447;
   animation: pulse 1s infinite ease-in-out;
 }
 

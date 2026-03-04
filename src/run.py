@@ -6,6 +6,8 @@ from openai import Client as LLM_Client
 from graph.graph import I2OGraph
 from graph.state import GraphState
 # In this sample code, I use OpenAI APIs
+
+load_dotenv()
 # import variable OPENAI_API_KEY from environment
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -25,15 +27,15 @@ initial_state = GraphState(
     warnings=[],
     product_image_urls=[],
 
-    image=open("offer_image_example_3.png", "rb").read(),
+    image=open("example_2_us_walmart.png", "rb").read(),
     image_mime_type="image/png",
-    offer_country="italy",
+    offer_country="United States",
 
-    image_check_model_name="gpt-5-nano",
-    image_decoding_model_name="gpt-5-mini",
+    image_check_model_name="gpt-4o",
+    image_decoding_model_name="gpt-4o",
     product_enrichment_model_name="gpt-4o",
     product_image_search_model_name="gpt-4o",
-    final_offer_composition_model_name="gpt-5-mini"
+    final_offer_composition_model_name="gpt-4o"
 )
 
 final_state = i2o.invoke(initial_state)

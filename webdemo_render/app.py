@@ -114,6 +114,14 @@ def _emit_status(job: JobState, status: str, message: str) -> None:
     job.add_event("status", {"status": status, "message": message})
 
 
+def _parse_country_from_example_name(filename: str) -> str:
+    stem = Path(filename).stem
+    parts = stem.split("_")
+    if len(parts) >= 3 and parts[2].strip():
+        return parts[2].strip().lower()
+    return "unknown"
+
+
 def _run_pipeline_job(job_id: str, image_bytes: bytes, image_mime_type: str, offer_country: str) -> None:
     with jobs_lock:
         job = jobs[job_id]
@@ -140,10 +148,10 @@ def _run_pipeline_job(job_id: str, image_bytes: bytes, image_mime_type: str, off
         image_mime_type=image_mime_type,
         offer_country=offer_country,
         image_check_model_name="gpt-5-nano",
-        image_decoding_model_name="gpt-5-mini",
+        image_decoding_model_name="gpt-4o",
         product_enrichment_model_name="gpt-4o",
         product_image_search_model_name="gpt-4o",
-        final_offer_composition_model_name="gpt-5-mini",
+        final_offer_composition_model_name="gpt-4o",
     )
 
     def on_trace_line(line: str) -> None:
@@ -184,7 +192,11 @@ async def random_example() -> dict[str, str]:
         raise HTTPException(status_code=404, detail="No example images found.")
 
     selected = random.choice(candidates)
-    return {"url": f"/examples/{selected.name}", "filename": selected.name}
+    return {
+        "url": f"/examples/{selected.name}",
+        "filename": selected.name,
+        "country": _parse_country_from_example_name(selected.name),
+    }
 
 
 @app.post("/api/jobs")

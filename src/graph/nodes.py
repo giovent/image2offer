@@ -221,7 +221,7 @@ class ProductEnrichmentNode:
         state["messages"] = list(state.get("messages", [])) + [AIMessage(content=reply_content)] # pyright: ignore[reportArgumentType]
       enriched_info.append(offer_enriched_info) # pyright: ignore[reportArgumentType]
     state["enriched_products_info"] = enriched_info # pyright: ignore[reportArgumentType]
-    print(f"[✨ Product Enrichment Node] Result: {enriched_info[:20]}...") # pyright: ignore[reportArgumentType]
+    print(f"[✨ Product Enrichment Node] Result enriched: {len(enriched_info)} offers. Total products: {sum(len(offer) for offer in enriched_info)}") # pyright: ignore[reportArgumentType]
     return state # pyright: ignore[reportArgumentType]
 
 class ProductImageSearchNode:
@@ -328,6 +328,9 @@ class FinalOfferCompositionNode:
     final_offers_info = []
     response = self.client.responses.create(
       model=model_name,
+      tools=[{"type": "web_search"}],  # Enable web search
+      tool_choice="auto",  # Let the model decide when to search
+      max_output_tokens=4096,
       input=[
         {
           "role": "system",

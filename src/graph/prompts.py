@@ -252,16 +252,20 @@ Your job is to return the final offer information based on the product informati
             country: str, #(the country where this product is sold, i.e. the country of origin of the offer)
             brand: str, 
 			name: str,
-            product_line: str | None,
             image_url: str,
+            barcodes: dict[str, list[str] | None],
 			quantities: list[float],
-			units: list[str]}]
+			units: list[str],
+            product_line: str | None,
+            category: str | None,
+            sub_category: str | None }]
 },...]
 
 Rules:
 - Return a string with the content, i.e. a list of dicts as said above, so that can be parsed into a list of dicts by the JSON.loads function.
 - If some information is not given or it is unkown, make that field None or empty, instead of returning "unkown" "not found" and such.
 - Do not merge offers together, refine each offer reguardless of the other offers in the list provided.
+- Only return each product image_url if the link provided is valid and points to an image, not to a 404 webpage or any other resource.
 - Do not add any other information to the offer, only the information provided by the agents. Do not comment on your answer.
 
 """.strip()

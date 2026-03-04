@@ -21,6 +21,12 @@ function formatTimestamp(isoTimestamp) {
   return new Date(isoTimestamp).toLocaleString();
 }
 
+function parseCountryFromExampleFilename(filename) {
+  const stem = (filename || "").replace(/\.[^.]+$/, "");
+  const parts = stem.split("_");
+  return parts[2]?.trim()?.toLowerCase() || "unknown";
+}
+
 function addTraceLine(text) {
   const item = document.createElement("li");
   item.textContent = text;
@@ -248,7 +254,7 @@ async function loadRandomExample() {
       const err = await metaRes.json();
       throw new Error(err.detail || "Could not load example metadata.");
     }
-    const { url, filename } = await metaRes.json();
+    const { url, filename, country } = await metaRes.json();
     const imageRes = await fetch(url);
     if (!imageRes.ok) {
       throw new Error("Example image could not be fetched.");
@@ -259,6 +265,7 @@ async function loadRandomExample() {
     const fileName = filename || "example-image";
     const file = new File([blob], fileName, { type: inferredType });
     setSelectedFile(file);
+    offerCountryInput.value = country || parseCountryFromExampleFilename(fileName);
     statusText.textContent = `Loaded example: ${fileName}`;
   } catch (err) {
     statusText.textContent = `error: ${err.message}`;
