@@ -3,7 +3,7 @@
 `image2offer` is an agentic AI pipeline that reads a flyer/promo image and returns structured offer data in JSON.
 
 The core idea is simple:
-- Input: one image (for example, a supermarket flyer).
+- Input: one image (for example, an offer from supermarket flyer, a website or a poster).
 - Output: normalized offer objects with price, original price, currency, and product details.
 
 ## How the agentic AI works
