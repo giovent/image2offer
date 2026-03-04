@@ -1,0 +1,19 @@
+[
+    {
+        "offer_currency": "元",
+        "offer_price": 99.0,
+        "original_price": null,
+        "offer_products_bundle": [
+            {
+                "brand": "屏東履歷",
+                "name": "金鑽鳳梨",
+                "quantities": [
+                    1.5
+                ],
+                "units": [
+                    "公斤"
+                ]
+            }
+        ]
+    }
+]

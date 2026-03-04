@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>image2offer demo</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <section class="card upload-card">
+        <h1>image2offer</h1>
+        <p class="subtitle">Upload or paste an offer image and press Enter.</p>
+
+        <label id="drop-zone" class="drop-zone">
+          <input id="file-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+          <span id="drop-label">Drop image here, click to upload, or paste from clipboard</span>
+        </label>
+
+        <div class="controls">
+          <label for="offer-country">Country</label>
+          <input id="offer-country" type="text" value="italy" />
+          <button id="run-btn" type="button">Run</button>
+        </div>
+
+        <p id="status-text" class="status-text">Idle</p>
+      </section>
+
+      <section class="card trace-card">
+        <div class="panel-header">
+          <h2>Trace</h2>
+          <div id="wip-indicator" class="wip hidden" aria-hidden="true">
+            <span class="dot"></span>
+            <span>Working</span>
+          </div>
+        </div>
+        <ul id="trace-list" class="trace-list"></ul>
+      </section>
+
+      <section class="card result-card">
+        <h2>Result JSON</h2>
+        <pre id="result-json" class="result-json">No result yet.</pre>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

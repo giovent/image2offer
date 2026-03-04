@@ -1,0 +1,21 @@
+[
+    {
+        "offer_currency": "TWD",
+        "offer_price": 149.0,
+        "original_price": 160.0,
+        "offer_products_bundle": [
+            {
+                "brand": "金牌",
+                "name": "ONE 台灣啤酒",
+                "quantities": [
+                    500,
+                    4
+                ],
+                "units": [
+                    "ML",
+                    "罐"
+                ]
+            }
+        ]
+    }
+]

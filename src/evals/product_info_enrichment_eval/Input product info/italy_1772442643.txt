@@ -1,0 +1,19 @@
+[
+    {
+        "offer_currency": "EUR",
+        "offer_price": 84.86,
+        "original_price": 100.98,
+        "offer_products_bundle": [
+            {
+                "brand": "GL.iNet",
+                "name": "GL-MT3000 Portable WiFi Router",
+                "quantities": [
+                    1
+                ],
+                "units": [
+                    "unit"
+                ]
+            }
+        ]
+    }
+]

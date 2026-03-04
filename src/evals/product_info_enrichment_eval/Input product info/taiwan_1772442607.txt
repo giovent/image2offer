@@ -1,0 +1,40 @@
+[
+    {
+        "offer_currency": "元",
+        "offer_price": 139.0,
+        "original_price": null,
+        "offer_products_bundle": [
+            {
+                "brand": "Airwaves",
+                "name": "無糖口香糖棒球聯名限量",
+                "quantities": [
+                    124,
+                    1
+                ],
+                "units": [
+                    "克",
+                    "包"
+                ]
+            }
+        ]
+    },
+    {
+        "offer_currency": "元",
+        "offer_price": 139.0,
+        "original_price": null,
+        "offer_products_bundle": [
+            {
+                "brand": "Airwaves",
+                "name": "無糖口香糖棒球聯名限量",
+                "quantities": [
+                    124,
+                    1
+                ],
+                "units": [
+                    "克",
+                    "包"
+                ]
+            }
+        ]
+    }
+]

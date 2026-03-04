@@ -1,0 +1,23 @@
+[
+    {
+        "offer_currency": "EUR",
+        "offer_price": 4.29,
+        "original_price": null,
+        "offer_products_bundle": [
+            {
+                "brand": "Svelto",
+                "name": "Detersivo lavapiatti al limone",
+                "quantities": [
+                    980,
+                    3,
+                    1
+                ],
+                "units": [
+                    "ml",
+                    "confessione",
+                    "l"
+                ]
+            }
+        ]
+    }
+]

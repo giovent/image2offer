@@ -1,0 +1,44 @@
+[
+    {
+        "offer_type": "Discount",
+        "offer_currency": "EUR",
+        "offer_price": 1.19,
+        "original_price": null,
+        "offer_purchase_quantity": 1,
+        "offer_products_bundle": [
+            {
+                "brand": "Sant'Anna",
+                "name": "SanThè Limone",
+                "quantities": [
+                    800,
+                    4
+                ],
+                "units": [
+                    "ml",
+                    "confezione"
+                ]
+            }
+        ]
+    },
+    {
+        "offer_type": "Discount",
+        "offer_currency": "EUR",
+        "offer_price": 1.19,
+        "original_price": null,
+        "offer_purchase_quantity": 1,
+        "offer_products_bundle": [
+            {
+                "brand": "Sant'Anna",
+                "name": "SanThè Pesca",
+                "quantities": [
+                    800,
+                    4
+                ],
+                "units": [
+                    "ml",
+                    "confezione"
+                ]
+            }
+        ]
+    }
+]

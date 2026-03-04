@@ -1,0 +1,36 @@
+[
+    {
+        "offer_currency": "EUR",
+        "offer_price": 1.99,
+        "original_price": 2.39,
+        "offer_products_bundle": [
+            {
+                "brand": "Coca-Cola",
+                "name": "Original Taste",
+                "quantities": [
+                    1.75
+                ],
+                "units": [
+                    "L"
+                ]
+            }
+        ]
+    },
+    {
+        "offer_currency": "EUR",
+        "offer_price": 1.99,
+        "original_price": 2.39,
+        "offer_products_bundle": [
+            {
+                "brand": "Coca-Cola",
+                "name": "Zero Zuccheri",
+                "quantities": [
+                    1.75
+                ],
+                "units": [
+                    "L"
+                ]
+            }
+        ]
+    }
+]

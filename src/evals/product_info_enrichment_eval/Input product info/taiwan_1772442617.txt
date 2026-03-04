@@ -1,0 +1,21 @@
+[
+    {
+        "offer_currency": "TWD",
+        "offer_price": 55.0,
+        "original_price": null,
+        "offer_products_bundle": [
+            {
+                "brand": "I ME I",
+                "name": "Original Soda Cracker",
+                "quantities": [
+                    192,
+                    12
+                ],
+                "units": [
+                    "g",
+                    "package"
+                ]
+            }
+        ]
+    }
+]

@@ -1,0 +1,92 @@
+[
+    {
+        "offer_currency": "元",
+        "offer_price": 119,
+        "original_price": 150,
+        "offer_products_bundle": [
+            {
+                "brand": "新東陽",
+                "name": "牛肉乾",
+                "quantities": [
+                    80,
+                    120
+                ],
+                "units": [
+                    "克"
+                ]
+            }
+        ]
+    },
+    {
+        "offer_currency": "元",
+        "offer_price": 119,
+        "original_price": 150,
+        "offer_products_bundle": [
+            {
+                "brand": "新東陽",
+                "name": "牛肉角",
+                "quantities": [
+                    80,
+                    120
+                ],
+                "units": [
+                    "克"
+                ]
+            }
+        ]
+    },
+    {
+        "offer_currency": "元",
+        "offer_price": 119,
+        "original_price": 150,
+        "offer_products_bundle": [
+            {
+                "brand": "新東陽",
+                "name": "豬肉乾",
+                "quantities": [
+                    80,
+                    120
+                ],
+                "units": [
+                    "克"
+                ]
+            }
+        ]
+    },
+    {
+        "offer_currency": "元",
+        "offer_price": 119,
+        "original_price": 150,
+        "offer_products_bundle": [
+            {
+                "brand": "新東陽",
+                "name": "鮪魚條",
+                "quantities": [
+                    80,
+                    120
+                ],
+                "units": [
+                    "克"
+                ]
+            }
+        ]
+    },
+    {
+        "offer_currency": "元",
+        "offer_price": 119,
+        "original_price": 150,
+        "offer_products_bundle": [
+            {
+                "brand": "新東陽",
+                "name": "鮪魚片",
+                "quantities": [
+                    80,
+                    120
+                ],
+                "units": [
+                    "克"
+                ]
+            }
+        ]
+    }
+]

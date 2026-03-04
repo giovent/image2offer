@@ -1,0 +1,21 @@
+[
+    {
+        "offer_currency": "TWD",
+        "offer_price": 28900,
+        "original_price": 38900,
+        "offer_products_bundle": [
+            {
+                "brand": "LG",
+                "name": "奈米UHD液晶顯示器 65QNED82AQA",
+                "quantities": [
+                    65,
+                    1
+                ],
+                "units": [
+                    "型",
+                    "台"
+                ]
+            }
+        ]
+    }
+]

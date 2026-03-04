@@ -1,0 +1,21 @@
+[
+    {
+        "offer_type": "Discount",
+        "offer_currency": "EUR",
+        "offer_price": 39.99,
+        "original_price": 44.99,
+        "offer_purchase_quantity": 1,
+        "offer_products_bundle": [
+            {
+                "brand": "Tenda",
+                "name": "4G03 Pro 4G LTE Cat4 Wireless N300Mbps Router",
+                "quantities": [
+                    1
+                ],
+                "units": [
+                    "router"
+                ]
+            }
+        ]
+    }
+]

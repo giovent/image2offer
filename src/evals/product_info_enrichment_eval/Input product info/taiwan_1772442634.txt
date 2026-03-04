@@ -1,0 +1,44 @@
+[
+    {
+        "offer_type": "Discount",
+        "offer_currency": "TWD",
+        "offer_price": 1188,
+        "original_price": 2000,
+        "offer_purchase_quantity": 1,
+        "offer_products_bundle": [
+            {
+                "brand": "ZOJIRUSHI",
+                "name": "MOMO獨家 桌上型不鏽鋼保溫壺-香檳杏",
+                "quantities": [
+                    1500,
+                    1
+                ],
+                "units": [
+                    "ml",
+                    "壺"
+                ]
+            }
+        ]
+    },
+    {
+        "offer_type": "Discount",
+        "offer_currency": "TWD",
+        "offer_price": 1188,
+        "original_price": 2000,
+        "offer_purchase_quantity": 1,
+        "offer_products_bundle": [
+            {
+                "brand": "ZOJIRUSHI",
+                "name": "MOMO獨家 桌上型不鏽鋼保溫壺-玫瑰粉",
+                "quantities": [
+                    1500,
+                    1
+                ],
+                "units": [
+                    "ml",
+                    "壺"
+                ]
+            }
+        ]
+    }
+]

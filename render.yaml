@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: image2offer-webdemo
+    runtime: python
+    plan: free
+    buildCommand: pip install -r webdemo_render/requirements.txt
+    startCommand: uvicorn webdemo_render.app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false

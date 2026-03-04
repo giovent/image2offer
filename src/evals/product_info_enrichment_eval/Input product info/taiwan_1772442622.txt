@@ -1,0 +1,21 @@
+[
+    {
+        "offer_currency": "TWD",
+        "offer_price": 4799.0,
+        "original_price": 5999.0,
+        "offer_products_bundle": [
+            {
+                "brand": "Quaker",
+                "name": "養氣人蔘無糖",
+                "quantities": [
+                    60,
+                    94
+                ],
+                "units": [
+                    "ml",
+                    "瓶"
+                ]
+            }
+        ]
+    }
+]

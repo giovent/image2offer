@@ -1,0 +1,44 @@
+[
+    {
+        "offer_currency": "EUR",
+        "offer_price": 4.85,
+        "original_price": null,
+        "offer_products_bundle": [
+            {
+                "brand": "Omino Bianco",
+                "name": "Detersivo lavatrice Muschio Bianco",
+                "quantities": [
+                    2400,
+                    60,
+                    1
+                ],
+                "units": [
+                    "ml",
+                    "lavaggi",
+                    "flacone"
+                ]
+            }
+        ]
+    },
+    {
+        "offer_currency": "EUR",
+        "offer_price": 4.85,
+        "original_price": null,
+        "offer_products_bundle": [
+            {
+                "brand": "Omino Bianco",
+                "name": "Detersivo lavatrice Igienizzante",
+                "quantities": [
+                    2400,
+                    60,
+                    1
+                ],
+                "units": [
+                    "ml",
+                    "lavaggi",
+                    "flacone"
+                ]
+            }
+        ]
+    }
+]

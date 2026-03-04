@@ -1,0 +1,19 @@
+[
+    {
+        "offer_currency": "元",
+        "offer_price": 159.0,
+        "original_price": 199.0,
+        "offer_products_bundle": [
+            {
+                "brand": "元本山",
+                "name": "朝鮮海苔經典鹽味量販袋",
+                "quantities": [
+                    64
+                ],
+                "units": [
+                    "克"
+                ]
+            }
+        ]
+    }
+]

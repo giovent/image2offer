@@ -1,0 +1,42 @@
+[
+    {
+        "offer_type": "Discount",
+        "offer_currency": "EUR",
+        "offer_price": 1.99,
+        "original_price": null,
+        "offer_products_bundle": [
+            {
+                "brand": "Garnier Fructis",
+                "name": "Shampoo",
+                "quantities": [
+                    250,
+                    1
+                ],
+                "units": [
+                    "ml",
+                    "flacone"
+                ]
+            }
+        ]
+    },
+    {
+        "offer_type": "Discount",
+        "offer_currency": "EUR",
+        "offer_price": 1.99,
+        "original_price": null,
+        "offer_products_bundle": [
+            {
+                "brand": "Garnier Fructis",
+                "name": "Balsamo",
+                "quantities": [
+                    200,
+                    1
+                ],
+                "units": [
+                    "ml",
+                    "flacone"
+                ]
+            }
+        ]
+    }
+]

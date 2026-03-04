@@ -1,0 +1,34 @@
+[
+    {
+        "offer_type": "Buy 1 Get 1",
+        "offer_currency": "元",
+        "offer_price": 18.0,
+        "original_price": 36.0,
+        "offer_products_bundle": [
+            {
+                "brand": "悅氏",
+                "name": "Light碱性水",
+                "quantities": [
+                    2200,
+                    1
+                ],
+                "units": [
+                    "毫升",
+                    "瓶"
+                ]
+            },
+            {
+                "brand": "悅氏",
+                "name": "Light碱性水",
+                "quantities": [
+                    2200,
+                    1
+                ],
+                "units": [
+                    "毫升",
+                    "瓶"
+                ]
+            }
+        ]
+    }
+]

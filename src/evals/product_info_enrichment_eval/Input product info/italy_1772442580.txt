@@ -1,0 +1,59 @@
+[
+    {
+        "offer_currency": "EUR",
+        "offer_price": 4.49,
+        "original_price": null,
+        "offer_products_bundle": [
+            {
+                "brand": "Garnier Fructis",
+                "name": "Crema Capelli Oliva",
+                "quantities": [
+                    400,
+                    1
+                ],
+                "units": [
+                    "ml",
+                    "bottle"
+                ]
+            }
+        ]
+    },
+    {
+        "offer_currency": "EUR",
+        "offer_price": 4.49,
+        "original_price": null,
+        "offer_products_bundle": [
+            {
+                "brand": "Garnier Fructis",
+                "name": "Crema Capelli Aloe Vera",
+                "quantities": [
+                    400,
+                    1
+                ],
+                "units": [
+                    "ml",
+                    "bottle"
+                ]
+            }
+        ]
+    },
+    {
+        "offer_currency": "EUR",
+        "offer_price": 4.49,
+        "original_price": null,
+        "offer_products_bundle": [
+            {
+                "brand": "Garnier Fructis",
+                "name": "Crema Capelli Riccio",
+                "quantities": [
+                    400,
+                    1
+                ],
+                "units": [
+                    "ml",
+                    "bottle"
+                ]
+            }
+        ]
+    }
+]
