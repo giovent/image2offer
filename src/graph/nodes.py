@@ -1,6 +1,7 @@
 import re
 import time
 import json
+from typing import Any
 
 import base64
 
@@ -8,6 +9,85 @@ from graph.prompts import *
 from graph.state import GraphState
 from langchain_core.messages import AIMessage
 from openai import Client as LLM_Client
+
+FINAL_OFFERS_RESPONSE_SCHEMA: dict[str, Any] = {
+  "type": "object",
+  "additionalProperties": False,
+  "required": ["final_offers"],
+  "properties": {
+    "final_offers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["offer_currency", "offer_price", "original_price", "country_of_origin", "offer_products"],
+        "properties": {
+          "offer_currency": {"type": "string"},
+          "offer_price": {"type": ["number", "null"]},
+          "original_price": {"type": ["number", "null"]},
+          "country_of_origin": {"type": "string"},
+          "offer_products": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": False,
+              "required": [
+                "country",
+                "brand",
+                "name",
+                "image_url",
+                "barcodes",
+                "quantities",
+                "units",
+                "product_line",
+                "category",
+                "sub_category",
+              ],
+              "properties": {
+                "country": {"type": "string"},
+                "brand": {"type": "string"},
+                "name": {"type": "string"},
+                "image_url": {"type": "string"},
+                "barcodes": {
+                  "type": "object",
+                  "additionalProperties": False,
+                  "required": ["EAN", "UPC", "ASIN"],
+                  "properties": {
+                    "EAN": {
+                      "anyOf": [
+                        {"type": "array", "items": {"type": "string"}},
+                        {"type": "null"},
+                      ]
+                    },
+                    "UPC": {
+                      "anyOf": [
+                        {"type": "array", "items": {"type": "string"}},
+                        {"type": "null"},
+                      ]
+                    },
+                    "ASIN": {
+                      "anyOf": [
+                        {"type": "array", "items": {"type": "string"}},
+                        {"type": "null"},
+                      ]
+                    },
+                  },
+                },
+                "quantities": {"type": "array", "items": {"type": "number"}},
+                "units": {"type": "array", "items": {"type": "string"}},
+                "product_line": {"type": ["string", "null"]},
+                "category": {"type": ["string", "null"]},
+                "sub_category": {"type": ["string", "null"]},
+              },
+            },
+          },
+        },
+      },
+    }
+  },
+}
+
+FINAL_OFFER_COMPOSITION_MAX_ATTEMPTS = 2
 
 
 class ImageCheckNode:
@@ -325,41 +405,82 @@ class FinalOfferCompositionNode:
 
     offer_country = state.get("offer_country", "Unkown")
 
-    final_offers_info = []
-    response = self.client.responses.create(
-      model=model_name,
-      tools=[{"type": "web_search"}],  # Enable web search
-      tool_choice="auto",  # Let the model decide when to search
-      max_output_tokens=4096,
-      input=[
-        {
-          "role": "system",
-          "content": [
-            {"type": "input_text", "text": FINAL_OFFER_COMPOSITION_SYSTEM_PROMPT},
-          ],
-        },
-        {
-          "role": "user",
-          "content": [
-            {"type": "input_text", "text": FINAL_OFFER_COMPOSITION_USER_PROMPT.format(agent_2_info=state.get("decoded_offers"), agent_3_info=state.get("enriched_products_info"), agent_4_info=state.get("product_image_urls"))},
-          ],
-        },
-      ],
+    base_user_prompt = FINAL_OFFER_COMPOSITION_USER_PROMPT.format(
+      agent_2_info=decoded_offers,
+      agent_3_info=enriched_products_info,
+      agent_4_info=product_image_urls,
+      offer_country=offer_country,
     )
-    reply_content = response.output_text.strip()
-    reply_content = re.sub(r"\bTrue\b", "true", reply_content)
-    reply_content = re.sub(r"\bFalse\b", "false", reply_content)
-    reply_content = re.sub(r'\(true,', "[true,", reply_content)
-    reply_content = re.sub(r'\(false,', "[false,", reply_content)
-    reply_content = re.sub(r'\)\s*$', "]", reply_content)
-    reply_content = re.sub(r'^\s*\(', "[", reply_content)
-    reply_content = re.sub(r'\'', '"', reply_content)
-    reply_content = re.sub(r'([{,\[])\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'\1"\2":', reply_content)
-    try:
-      final_offers_info = json.loads(reply_content)
-    except json.JSONDecodeError:
-      final_offers_info = []
-      print(f"[✅ Final Offer Composition Node]: Error parsing JSON: {reply_content}")
-    state["final_offers_info"] = final_offers_info
+    final_offers_info: list[dict[str, Any]] = []
+    parse_successful = False
+    last_reply_content = ""
+    for attempt in range(FINAL_OFFER_COMPOSITION_MAX_ATTEMPTS):
+      retry_instruction = ""
+      if attempt > 0:
+        retry_instruction = (
+          "\n\nRetry reason: your previous answer was not parseable as strict schema JSON. "
+          "Return only the JSON array that matches the schema."
+        )
+      response = self.client.responses.create(
+        model=model_name,
+        tools=[{"type": "web_search"}],  # Enable web search
+        tool_choice="auto",  # Let the model decide when to search
+        text={
+          "format": {
+            "type": "json_schema",
+            "name": "final_offers_info",
+            "schema": FINAL_OFFERS_RESPONSE_SCHEMA,
+            "strict": True,
+          }
+        },
+        input=[
+          {
+            "role": "system",
+            "content": [
+              {"type": "input_text", "text": FINAL_OFFER_COMPOSITION_SYSTEM_PROMPT},
+            ],
+          },
+          {
+            "role": "user",
+            "content": [
+              {"type": "input_text", "text": base_user_prompt + retry_instruction},
+            ],
+          },
+        ],
+      )
+      last_reply_content = response.output_text.strip()
+      parsed_final_offers = self._parse_final_offers_response(last_reply_content)
+      if parsed_final_offers is not None:
+        final_offers_info = parsed_final_offers
+        parse_successful = True
+        break
+      print(f"[✅ Final Offer Composition Node]: schema JSON parsing failed, retry {attempt + 1}/{FINAL_OFFER_COMPOSITION_MAX_ATTEMPTS}.")
+
+    if parse_successful:
+      state["final_offers_info"] = final_offers_info
+    else:
+      warnings = list(state.get("warnings", []) or [])
+      warnings.append("Final offer composition failed schema JSON parsing. Returned empty list.")
+      state["warnings"] = warnings
+      state["final_offers_info"] = []
+      print(f"[✅ Final Offer Composition Node]: Error parsing JSON after retries. Last reply: {last_reply_content!r}")
     print(f"[✅ Final Offer Composition Node] Result: {final_offers_info}")
     return state
+
+  def _parse_final_offers_response(self, reply_content: str) -> list[dict[str, Any]] | None:
+    try:
+      parsed_payload = json.loads(reply_content)
+    except json.JSONDecodeError:
+      return None
+
+    if isinstance(parsed_payload, list):
+      if all(isinstance(offer, dict) for offer in parsed_payload):
+        return parsed_payload
+      return None
+
+    if isinstance(parsed_payload, dict):
+      offers = parsed_payload.get("final_offers")
+      if isinstance(offers, list) and all(isinstance(offer, dict) for offer in offers):
+        return offers
+
+    return None

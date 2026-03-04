@@ -37,6 +37,8 @@ You can try it here: [https://image2offer-webdemo.onrender.com](https://image2of
 
 Example input image: Walmart flyer example from `webdemo_render` flow (`example_2_us_walmart.png`).
 
+![Walmart flyer example input](webdemo_render/example_images/example_2_us_walmart.png)
+
 Example final output:
 
 ```json
@@ -81,6 +83,62 @@ Example final output:
             }
         ]
     }
+]
+
+
+
+```
+
+## Example (Taiwan PXMart image -> final result)
+
+Example input image: PXMart flyer example from `webdemo_render` flow (`example_5_taiwan_pxmart.png`).
+
+![Taiwan PXMart flyer example input](webdemo_render/example_images/example_5_taiwan_pxmart.png)
+
+Example final output:
+
+```json
+[
+  {
+    "offer_currency": "TWD",
+    "offer_price": 538,
+    "original_price": 1076,
+    "country_of_origin": "Taiwan",
+    "offer_products": [
+      {
+        "country": "Taiwan",
+        "brand": "Colgate",
+        "name": "高露潔抗敏好口氣牙膏",
+        "image_url": null,
+        "barcodes": {
+          "EAN": null,
+          "UPC": null,
+          "ASIN": null
+        },
+        "quantities": [3],
+        "units": ["組"],
+        "product_line": "抗敏 好口氣",
+        "category": "牙膏",
+        "sub_category": "抗敏牙膏／清新口氣"
+      },
+      {
+        "country": "Taiwan",
+        "brand": "Colgate",
+        "name": "高露潔抗敏好口氣牙膏",
+        "image_url": null,
+        "barcodes": {
+          "EAN": null,
+          "UPC": null,
+          "ASIN": null
+        },
+        "quantities": [3],
+        "units": ["組"],
+        "product_line": "高露潔抗敏好口氣",
+        "category": "牙膏",
+        "sub_category": "抗敏感牙膏"
+      }
+    ]
+  }
 ]
 ```
 

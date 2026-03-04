@@ -27,11 +27,11 @@ initial_state = GraphState(
     warnings=[],
     product_image_urls=[],
 
-    image=open("example_2_us_walmart.png", "rb").read(),
+    image=open("offer_image_example_3.png", "rb").read(),
     image_mime_type="image/png",
-    offer_country="United States",
+    offer_country="Italy",
 
-    image_check_model_name="gpt-4o",
+    image_check_model_name="gpt-5-nano",
     image_decoding_model_name="gpt-4o",
     product_enrichment_model_name="gpt-4o",
     product_image_search_model_name="gpt-4o",
