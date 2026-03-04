@@ -5,6 +5,7 @@ import contextlib
 import io
 import json
 import os
+import random
 import sys
 import threading
 import traceback
@@ -37,7 +38,9 @@ ALLOWED_MIME_TYPES = {
     "image/webp",
     "image/gif",
 }
+ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+EXAMPLES_DIR = Path(__file__).resolve().parent / "example_images"
 
 
 @dataclass
@@ -96,6 +99,11 @@ app.mount(
     StaticFiles(directory=str(Path(__file__).resolve().parent / "static")),
     name="static",
 )
+app.mount(
+    "/examples",
+    StaticFiles(directory=str(EXAMPLES_DIR), check_dir=False),
+    name="examples",
+)
 
 jobs: dict[str, JobState] = {}
 jobs_lock = threading.Lock()
@@ -122,7 +130,7 @@ def _run_pipeline_job(job_id: str, image_bytes: bytes, image_mime_type: str, off
     graph = I2OGraph(
         llm_client=openai_client,
         CHECK_IMAGE_BEFORE_RUN=True,
-        SEARCH_PRODUCT_IMAGE_ONLINE=True,
+        SEARCH_PRODUCT_IMAGE_ONLINE=False,
     )
     initial_state = GraphState(
         messages=[],
@@ -164,10 +172,25 @@ async def home(request: Request) -> HTMLResponse:
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+@app.get("/api/examples/random")
+async def random_example() -> dict[str, str]:
+    if not EXAMPLES_DIR.exists():
+        raise HTTPException(status_code=404, detail="Examples folder not found.")
+
+    candidates = [
+        path for path in EXAMPLES_DIR.iterdir() if path.is_file() and path.suffix.lower() in ALLOWED_IMAGE_EXTENSIONS
+    ]
+    if not candidates:
+        raise HTTPException(status_code=404, detail="No example images found.")
+
+    selected = random.choice(candidates)
+    return {"url": f"/examples/{selected.name}", "filename": selected.name}
+
+
 @app.post("/api/jobs")
 async def create_job(
     image: UploadFile = File(...),
-    offer_country: str = "italy",
+    offer_country: str = "unknown",
 ) -> dict[str, Any]:
     if image.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(status_code=400, detail="Unsupported image type.")

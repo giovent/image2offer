@@ -17,7 +17,7 @@ class ImageCheckNode:
     
   def check_image_offer_node(self, state: GraphState) -> GraphState:
     """Extracts structured offers from image + metadata."""
-    print("Image Check Node: checking image.")
+    print("[🔍 Image Offer Check Node]: checking image to see if it contains an offer.")
 
     image_bytes = state.get("image")
     if not image_bytes:
@@ -59,7 +59,7 @@ class ImageCheckNode:
     if reply_content not in {"True", "False"}:
       raise ValueError(f"Expected vision model to return 'True' or 'False', got: {reply_content!r}")
 
-    print(f"Image Check Node: {reply_content}")
+    print(f"[🔍 Image Offer Check Node] Result: {reply_content}")
     state["messages"] = list(state.get("messages", [])) + [AIMessage(content=reply_content)] # type: ignore
     return state
 
@@ -125,7 +125,7 @@ class OfferInfoExtractionNode:
     if self.save_result_in_txt:
       self.save_to_txt(offers)
     
-    print(f"[🔎 Offer Info Extraction Node] Result: {reply_content}")
+    print(f"[🔎 Offer Info Extraction Node] Offers decoded: {len(offers)}. Total products: {sum(len(offer["offer_products_bundle"]) for offer in offers)}")
     state["messages"] = list(state.get("messages", [])) + [AIMessage(content=reply_content)] # pyright: ignore[reportArgumentType]
     return state
   
@@ -221,7 +221,7 @@ class ProductEnrichmentNode:
         state["messages"] = list(state.get("messages", [])) + [AIMessage(content=reply_content)] # pyright: ignore[reportArgumentType]
       enriched_info.append(offer_enriched_info) # pyright: ignore[reportArgumentType]
     state["enriched_products_info"] = enriched_info # pyright: ignore[reportArgumentType]
-    print(f"[✨ Product Enrichment Node] Result: {enriched_info}") # pyright: ignore[reportArgumentType]
+    print(f"[✨ Product Enrichment Node] Result: {enriched_info[:20]}...") # pyright: ignore[reportArgumentType]
     return state # pyright: ignore[reportArgumentType]
 
 class ProductImageSearchNode:
@@ -305,7 +305,7 @@ class FinalOfferCompositionNode:
     self.client = client
     
   def compose_final_offer_node(self, state: GraphState) -> GraphState:
-    print("Final Offer Composition Node: composing final offer.")
+    print("[✅ Final Offer Composition Node]: organizing and composing final offers information.")
 
     model_name = state.get("final_offer_composition_model_name")
     if not model_name:
@@ -356,7 +356,7 @@ class FinalOfferCompositionNode:
       final_offers_info = json.loads(reply_content)
     except json.JSONDecodeError:
       final_offers_info = []
-      print(f"[💰 Final Offer Composition Node]: Error parsing JSON: {reply_content}")
+      print(f"[✅ Final Offer Composition Node]: Error parsing JSON: {reply_content}")
     state["final_offers_info"] = final_offers_info
-    print(f"[💰 Final Offer Composition Node] Result: {final_offers_info}")
+    print(f"[✅ Final Offer Composition Node] Result: {final_offers_info}")
     return state

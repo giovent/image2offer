@@ -5,9 +5,6 @@ from openai import Client as LLM_Client
 
 from graph.graph import I2OGraph
 from graph.state import GraphState
-
-load_dotenv()
-
 # In this sample code, I use OpenAI APIs
 # import variable OPENAI_API_KEY from environment
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

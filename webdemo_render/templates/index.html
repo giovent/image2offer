@@ -9,7 +9,22 @@
   <body>
     <main class="layout">
       <section class="card upload-card">
-        <h1>image2offer</h1>
+        <div class="title-row">
+          <h1>image2offer</h1>
+          <div class="title-meta">
+            <span class="byline">by Giovanni Ventilii</span>
+            <a
+              class="info-btn"
+              href="https://github.com/giovent/image2offer"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open image2offer repository"
+              title="Repository"
+            >
+              Info
+            </a>
+          </div>
+        </div>
         <p class="subtitle">Upload or paste an offer image and press Enter.</p>
 
         <label id="drop-zone" class="drop-zone">
@@ -18,9 +33,29 @@
         </label>
 
         <div class="controls">
-          <label for="offer-country">Country</label>
-          <input id="offer-country" type="text" value="italy" />
+          <div class="country-label-wrap">
+            <label for="offer-country">Country (optional)</label>
+            <span class="tooltip-wrap" tabindex="0" aria-label="Country info">
+              <span class="tooltip-icon" aria-hidden="true">i</span>
+              <span id="country-help" class="tooltip-text">
+                Inserting the country helps the agents with language and barcode search.
+              </span>
+            </span>
+          </div>
+          <input
+            id="offer-country"
+            type="text"
+            value=""
+            placeholder="Optional (default: unknown)"
+            aria-describedby="country-help"
+          />
+          <button id="load-example-btn" type="button">Load example</button>
           <button id="run-btn" type="button">Run</button>
+        </div>
+
+        <div id="preview-panel" class="preview-panel hidden" aria-live="polite">
+          <p class="preview-title">Selected image preview</p>
+          <img id="selected-preview" class="selected-preview" alt="Selected upload preview" />
         </div>
 
         <p id="status-text" class="status-text">Idle</p>
@@ -38,8 +73,10 @@
       </section>
 
       <section class="card result-card">
-        <h2>Result JSON</h2>
-        <pre id="result-json" class="result-json">No result yet.</pre>
+        <h2>Recent decoded images</h2>
+        <div id="recent-results" class="recent-results">
+          <p class="empty-history">No processed images yet.</p>
+        </div>
       </section>
     </main>
 

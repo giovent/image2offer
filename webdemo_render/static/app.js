@@ -2,14 +2,24 @@ const fileInput = document.getElementById("file-input");
 const dropZone = document.getElementById("drop-zone");
 const dropLabel = document.getElementById("drop-label");
 const runBtn = document.getElementById("run-btn");
+const loadExampleBtn = document.getElementById("load-example-btn");
 const traceList = document.getElementById("trace-list");
-const resultJson = document.getElementById("result-json");
 const statusText = document.getElementById("status-text");
 const wipIndicator = document.getElementById("wip-indicator");
 const offerCountryInput = document.getElementById("offer-country");
+const previewPanel = document.getElementById("preview-panel");
+const selectedPreview = document.getElementById("selected-preview");
+const recentResultsContainer = document.getElementById("recent-results");
 
 let selectedFile = null;
 let activeEventSource = null;
+let selectedPreviewUrl = null;
+const recentResults = [];
+const MAX_RECENT_RESULTS = 20;
+
+function formatTimestamp(isoTimestamp) {
+  return new Date(isoTimestamp).toLocaleString();
+}
 
 function addTraceLine(text) {
   const item = document.createElement("li");
@@ -20,12 +30,20 @@ function addTraceLine(text) {
 
 function resetOutput() {
   traceList.innerHTML = "";
-  resultJson.textContent = "Waiting for result...";
 }
 
 function setWorking(isWorking) {
   runBtn.disabled = isWorking;
+  loadExampleBtn.disabled = isWorking;
   wipIndicator.classList.toggle("hidden", !isWorking);
+}
+
+function revokeSelectedPreview() {
+  if (!selectedPreviewUrl) {
+    return;
+  }
+  URL.revokeObjectURL(selectedPreviewUrl);
+  selectedPreviewUrl = null;
 }
 
 function setSelectedFile(file) {
@@ -33,6 +51,79 @@ function setSelectedFile(file) {
   dropLabel.textContent = file
     ? `Selected: ${file.name || "clipboard-image"} (${Math.round(file.size / 1024)} KB)`
     : "Drop image here, click to upload, or paste from clipboard";
+
+  revokeSelectedPreview();
+  if (file) {
+    selectedPreviewUrl = URL.createObjectURL(file);
+    selectedPreview.src = selectedPreviewUrl;
+    previewPanel.classList.remove("hidden");
+  } else {
+    selectedPreview.removeAttribute("src");
+    previewPanel.classList.add("hidden");
+  }
+}
+
+function renderRecentResults() {
+  recentResultsContainer.innerHTML = "";
+  if (recentResults.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "empty-history";
+    empty.textContent = "No processed images yet.";
+    recentResultsContainer.appendChild(empty);
+    return;
+  }
+
+  for (const item of recentResults) {
+    const row = document.createElement("article");
+    row.className = "history-item";
+
+    const imageWrap = document.createElement("div");
+    imageWrap.className = "history-image-wrap";
+    const image = document.createElement("img");
+    image.className = "history-image";
+    image.src = item.imageUrl;
+    image.alt = `Preview for ${item.fileName}`;
+    imageWrap.appendChild(image);
+
+    const content = document.createElement("div");
+    content.className = "history-content";
+
+    const meta = document.createElement("div");
+    meta.className = "history-meta";
+
+    const fileName = document.createElement("strong");
+    fileName.textContent = item.fileName;
+
+    const details = document.createElement("span");
+    details.textContent = `${formatTimestamp(item.createdAt)} \u00b7 country: ${item.offerCountry}`;
+
+    const badge = document.createElement("span");
+    badge.className = `history-status ${item.status}`;
+    badge.textContent = item.status;
+
+    meta.append(fileName, details, badge);
+
+    const payload = document.createElement("pre");
+    payload.className = "history-json";
+    payload.textContent = item.status === "success"
+      ? JSON.stringify(item.result, null, 2)
+      : JSON.stringify({ error: item.error || "Unknown error" }, null, 2);
+
+    content.append(meta, payload);
+    row.append(imageWrap, content);
+    recentResultsContainer.appendChild(row);
+  }
+}
+
+function addRecentResult(record) {
+  recentResults.unshift(record);
+  while (recentResults.length > MAX_RECENT_RESULTS) {
+    const removed = recentResults.pop();
+    if (removed?.imageUrl) {
+      URL.revokeObjectURL(removed.imageUrl);
+    }
+  }
+  renderRecentResults();
 }
 
 async function startJob() {
@@ -49,9 +140,15 @@ async function startJob() {
   setWorking(true);
   statusText.textContent = "Submitting image...";
 
+  const offerCountry = offerCountryInput.value.trim() || "unknown";
+  const submittedImageUrl = URL.createObjectURL(selectedFile);
+  const submittedFileName = selectedFile.name || "clipboard-image";
+  let finalized = false;
+  let latestResult = null;
+
   const form = new FormData();
   form.append("image", selectedFile);
-  form.append("offer_country", offerCountryInput.value.trim() || "italy");
+  form.append("offer_country", offerCountry);
 
   try {
     const createRes = await fetch("/api/jobs", {
@@ -72,8 +169,21 @@ async function startJob() {
       const data = JSON.parse(event.data);
       statusText.textContent = `${data.status}: ${data.message}`;
       addTraceLine(`[Status] ${data.message}`);
+      if (!finalized && (data.status === "success" || data.status === "error")) {
+        addRecentResult({
+          fileName: submittedFileName,
+          imageUrl: submittedImageUrl,
+          createdAt: new Date().toISOString(),
+          offerCountry,
+          status: data.status,
+          result: latestResult,
+          error: data.status === "error" ? data.message : null,
+        });
+        finalized = true;
+      }
       if (data.status === "success" || data.status === "error") {
         setWorking(false);
+        activeEventSource?.close();
       }
     });
 
@@ -84,7 +194,7 @@ async function startJob() {
 
     activeEventSource.addEventListener("result", (event) => {
       const data = JSON.parse(event.data);
-      resultJson.textContent = JSON.stringify(data.result, null, 2);
+      latestResult = data.result;
       addTraceLine("[Result] Final JSON received.");
     });
 
@@ -93,6 +203,18 @@ async function startJob() {
         const data = JSON.parse(event.data);
         addTraceLine(`[Error] ${data.message}`);
         statusText.textContent = `error: ${data.message}`;
+        if (!finalized) {
+          addRecentResult({
+            fileName: submittedFileName,
+            imageUrl: submittedImageUrl,
+            createdAt: new Date().toISOString(),
+            offerCountry,
+            status: "error",
+            result: null,
+            error: data.message,
+          });
+          finalized = true;
+        }
       } else {
         addTraceLine("[Error] Event stream closed.");
       }
@@ -101,8 +223,45 @@ async function startJob() {
     });
   } catch (err) {
     statusText.textContent = `error: ${err.message}`;
-    resultJson.textContent = JSON.stringify({ error: err.message }, null, 2);
+    addRecentResult({
+      fileName: submittedFileName,
+      imageUrl: submittedImageUrl,
+      createdAt: new Date().toISOString(),
+      offerCountry,
+      status: "error",
+      result: null,
+      error: err.message,
+    });
     setWorking(false);
+  }
+}
+
+async function loadRandomExample() {
+  if (runBtn.disabled) {
+    return;
+  }
+
+  statusText.textContent = "Loading random example...";
+  try {
+    const metaRes = await fetch("/api/examples/random");
+    if (!metaRes.ok) {
+      const err = await metaRes.json();
+      throw new Error(err.detail || "Could not load example metadata.");
+    }
+    const { url, filename } = await metaRes.json();
+    const imageRes = await fetch(url);
+    if (!imageRes.ok) {
+      throw new Error("Example image could not be fetched.");
+    }
+
+    const blob = await imageRes.blob();
+    const inferredType = blob.type || "image/png";
+    const fileName = filename || "example-image";
+    const file = new File([blob], fileName, { type: inferredType });
+    setSelectedFile(file);
+    statusText.textContent = `Loaded example: ${fileName}`;
+  } catch (err) {
+    statusText.textContent = `error: ${err.message}`;
   }
 }
 
@@ -147,3 +306,13 @@ document.addEventListener("keydown", (event) => {
 });
 
 runBtn.addEventListener("click", startJob);
+loadExampleBtn.addEventListener("click", loadRandomExample);
+
+window.addEventListener("beforeunload", () => {
+  revokeSelectedPreview();
+  for (const item of recentResults) {
+    if (item.imageUrl) {
+      URL.revokeObjectURL(item.imageUrl);
+    }
+  }
+});
