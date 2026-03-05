@@ -38,12 +38,15 @@ The web demo is only a simple UI to run this same pipeline online.
 
 Example input image: Walmart flyer example from `webdemo_render` flow (`example_2_us_walmart.png`).
 
-![Conad flyer example input](easy.png)
-
-Example final output (2 offers, one per product):
-
-```json
-[
+<table>
+  <tr>
+    <td width="45%" valign="top">
+      <img src="easy.png" alt="Conad flyer example input" />
+    </td>
+    <td width="55%" valign="top">
+      <b>Example final output</b> (2 offers, one per product):
+      <div style="max-height: 420px; overflow-y: auto; border: 1px solid #d0d7de; padding: 8px; border-radius: 6px; background-color: #f6f8fa;">
+        <pre><code>[
   {
     "offer_currency": "EUR",
     "offer_price": 1.99,
@@ -104,20 +107,26 @@ Example final output (2 offers, one per product):
       }
     ]
   }
-]
-```
+]</code></pre>
+      </div>
+    </td>
+  </tr>
+</table>
 
 ## Example - Hard Image
 
 No unit shown, 2+1 product bundle + buy-one-get-one, confusing pricing (avg 269), no original price.
 
-![Taiwan PXMart flyer example input](hard.png)
-
-Example final output using high-reasoning models
-(gpt-5.2, Total input tokens: 203616, Total output tokens: 1856, cost: 0.2 USD):
-
-```json
-[
+<table>
+  <tr>
+    <td width="45%" valign="top">
+      <img src="hard.png" alt="Taiwan PXMart flyer example input" />
+    </td>
+    <td width="55%" valign="top">
+      <b>Example final output using high-reasoning models</b><br />
+      (gpt-5.2, Total input tokens: 203616, Total output tokens: 1856, cost: 0.2 USD)
+      <div style="max-height: 320px; overflow-y: auto; border: 1px solid #d0d7de; padding: 8px; border-radius: 6px; background-color: #f6f8fa;">
+        <pre><code>[
   {
     "offer_currency": "TWD",
     "offer_price": 538,
@@ -144,8 +153,15 @@ Example final output using high-reasoning models
       }
     ]
   }
-]
-```
+]</code></pre>
+      </div>
+    </td>
+  </tr>
+</table>
+
+## Agentic Graph Representation
+
+![Agentic graph representation](graph.png)
 
 ## Libraries and tools used
 
