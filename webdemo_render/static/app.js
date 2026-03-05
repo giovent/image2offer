@@ -54,53 +54,24 @@ function formatTimestamp(isoTimestamp) {
   return new Date(isoTimestamp).toLocaleString();
 }
 
-function formatUnitPriceNumber(value) {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    return null;
-  }
-  return Number(value.toFixed(3)).toString();
-}
-
 function deriveUnitPriceFromFirstOffer(result) {
   const firstOffer = Array.isArray(result) ? result[0] : null;
   if (!firstOffer || typeof firstOffer !== "object") {
     return null;
   }
 
-  const directPricePerQuantity = firstOffer.prices_per_quantities?.[0];
-  const directUnit = firstOffer.units?.[0];
-  const directValue = formatUnitPriceNumber(directPricePerQuantity);
-  if (directValue && typeof directUnit === "string" && directUnit.trim()) {
-    return `${directValue} ${directUnit.trim()}`;
-  }
-
-  const offerPrice = firstOffer.offer_price;
-  const offerCurrency = typeof firstOffer.offer_currency === "string" ? firstOffer.offer_currency.trim() : "";
-  const firstProduct = Array.isArray(firstOffer.offer_products) ? firstOffer.offer_products[0] : null;
-  const quantities = Array.isArray(firstProduct?.quantities) ? firstProduct.quantities : [];
-  const units = Array.isArray(firstProduct?.units) ? firstProduct.units : [];
-  const quantity = quantities[0];
-  const unit = units[0];
-  if (
-    typeof offerPrice !== "number" ||
-    !Number.isFinite(offerPrice) ||
-    quantities.length !== 1 ||
-    units.length !== 1 ||
-    typeof quantity !== "number" ||
-    !Number.isFinite(quantity) ||
-    quantity <= 0 ||
-    typeof unit !== "string" ||
-    !unit.trim() ||
-    !offerCurrency
-  ) {
+  const pricePerQuantity = firstOffer.price_per_quantity;
+  if (pricePerQuantity === null || pricePerQuantity === undefined) {
     return null;
   }
-
-  const derivedValue = formatUnitPriceNumber(offerPrice / quantity);
-  if (!derivedValue) {
-    return null;
+  if (typeof pricePerQuantity === "string") {
+    const normalized = pricePerQuantity.trim();
+    return normalized || null;
   }
-  return `${derivedValue} ${offerCurrency}/${unit.trim()}`;
+  if (typeof pricePerQuantity === "number" && Number.isFinite(pricePerQuantity)) {
+    return String(pricePerQuantity);
+  }
+  return null;
 }
 
 function parseCountryFromExampleFilename(filename) {
