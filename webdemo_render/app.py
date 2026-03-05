@@ -41,6 +41,7 @@ ALLOWED_MIME_TYPES = {
 ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 EXAMPLES_DIR = Path(__file__).resolve().parent / "example_images"
+WORKFLOW_IMAGES_DIR = Path(__file__).resolve().parent / "workflow_images"
 
 
 @dataclass
@@ -103,6 +104,11 @@ app.mount(
     "/examples",
     StaticFiles(directory=str(EXAMPLES_DIR), check_dir=False),
     name="examples",
+)
+app.mount(
+    "/workflow_images",
+    StaticFiles(directory=str(WORKFLOW_IMAGES_DIR), check_dir=False),
+    name="workflow_images",
 )
 
 jobs: dict[str, JobState] = {}

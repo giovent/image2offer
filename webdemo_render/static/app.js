@@ -10,12 +10,25 @@ const offerCountryInput = document.getElementById("offer-country");
 const previewPanel = document.getElementById("preview-panel");
 const selectedPreview = document.getElementById("selected-preview");
 const recentResultsContainer = document.getElementById("recent-results");
+const workflowStepImage = document.getElementById("workflow-step-image");
+const workflowStepLabel = document.getElementById("workflow-step-label");
 
 let selectedFile = null;
 let activeEventSource = null;
 let selectedPreviewUrl = null;
 const recentResults = [];
 const MAX_RECENT_RESULTS = 20;
+const WORKFLOW_IMAGE_BASE = "/workflow_images";
+const WORKFLOW_STEPS = {
+  waiting: { label: "Waiting to run", image: "END.PNG" },
+  imageCheck: { label: "Checking image", image: "IMAGE_CHECK.PNG" },
+  extractInfo: { label: "Extracting offer info", image: "EXTRACT_INFO.PNG" },
+  enrichInfo: { label: "Enriching product info", image: "ENRICH_PRODUCTS.PNG" },
+  imageSearch: { label: "Searching product images", image: "ENRICH_PRODUCTS.PNG" },
+  finalCompose: { label: "Composing final offer", image: "FINILIZE_OFFER.PNG" },
+  end: { label: "Finished", image: "END.PNG" },
+};
+let currentWorkflowStep = "waiting";
 
 function formatTimestamp(isoTimestamp) {
   return new Date(isoTimestamp).toLocaleString();
@@ -81,6 +94,39 @@ function addTraceLine(text) {
   item.textContent = text;
   traceList.appendChild(item);
   traceList.scrollTop = traceList.scrollHeight;
+}
+
+function setWorkflowStep(stepKey) {
+  const step = WORKFLOW_STEPS[stepKey];
+  if (!step || !workflowStepImage || !workflowStepLabel) {
+    return;
+  }
+  currentWorkflowStep = stepKey;
+  workflowStepLabel.textContent = step.label;
+  workflowStepImage.src = `${WORKFLOW_IMAGE_BASE}/${step.image}`;
+}
+
+function mapTraceToWorkflowStep(message) {
+  const normalized = (message || "").toLowerCase();
+  if (normalized.includes("image offer check node")) {
+    return "imageCheck";
+  }
+  if (normalized.includes("offer info extraction node")) {
+    return "extractInfo";
+  }
+  if (normalized.includes("product enrichment node")) {
+    return "enrichInfo";
+  }
+  if (normalized.includes("product image search node")) {
+    return "imageSearch";
+  }
+  if (normalized.includes("final offer composition node")) {
+    return "finalCompose";
+  }
+  if (normalized.includes("graph invocation end")) {
+    return "end";
+  }
+  return null;
 }
 
 function resetOutput() {
@@ -203,6 +249,7 @@ async function startJob() {
   }
 
   resetOutput();
+  setWorkflowStep("waiting");
   setWorking(true);
   statusText.textContent = "Submitting image...";
 
@@ -241,6 +288,9 @@ async function startJob() {
       const data = JSON.parse(event.data);
       statusText.textContent = `${data.status}: ${data.message}`;
       addTraceLine(`[Status] ${data.message}`);
+      if (data.status === "success" || data.status === "error") {
+        setWorkflowStep("end");
+      }
       if (!finalized && (data.status === "success" || data.status === "error")) {
         addRecentResult({
           fileName: submittedFileName,
@@ -261,6 +311,10 @@ async function startJob() {
     activeEventSource.addEventListener("trace", (event) => {
       const data = JSON.parse(event.data);
       addTraceLine(data.message);
+      const stepKey = mapTraceToWorkflowStep(data.message);
+      if (stepKey && stepKey !== currentWorkflowStep) {
+        setWorkflowStep(stepKey);
+      }
     });
 
     activeEventSource.addEventListener("result", (event) => {
@@ -274,6 +328,7 @@ async function startJob() {
         const data = JSON.parse(event.data);
         addTraceLine(`[Error] ${data.message}`);
         statusText.textContent = `error: ${data.message}`;
+        setWorkflowStep("end");
         if (!finalized) {
           addRecentResult({
             fileName: submittedFileName,
@@ -289,11 +344,13 @@ async function startJob() {
       } else {
         addTraceLine("[Error] Event stream closed.");
       }
+      setWorkflowStep("end");
       finishJob();
     });
     return true;
   } catch (err) {
     statusText.textContent = `error: ${err.message}`;
+    setWorkflowStep("end");
     addRecentResult({
       fileName: submittedFileName,
       imageUrl: submittedImageUrl,
@@ -381,6 +438,7 @@ document.addEventListener("keydown", (event) => {
 
 runBtn.addEventListener("click", startJob);
 loadExampleBtn.addEventListener("click", loadRandomExample);
+setWorkflowStep("waiting");
 
 window.addEventListener("beforeunload", () => {
   revokeSelectedPreview();

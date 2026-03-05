@@ -432,7 +432,7 @@ class ProductImageSearchNode:
       print(f"[🖼️ Product Image Search Node]: Error parsing JSON: {reply_content}")
     
     state["product_image_urls"] = product_image_urls
-    print(f"[🖼️ Product Image Search Node] Result: {product_image_urls}")
+    print(f"[🖼️ Product Image Search Node] Finished.")
     return state
 
 class FinalOfferCompositionNode:
@@ -527,7 +527,7 @@ class FinalOfferCompositionNode:
       state["warnings"] = warnings
       state["final_offers_info"] = []
       print(f"[✅ Final Offer Composition Node]: Error parsing JSON after retries. Last reply: {last_reply_content!r}")
-    print(f"[✅ Final Offer Composition Node] Result: {final_offers_info}")
+    print(f"[✅ Final Offer Composition Node] Final offers are composed successfully.")
     return state
 
   def _normalize_single_quantity_per_product(self, offers: list[dict[str, Any]]) -> list[dict[str, Any]]:

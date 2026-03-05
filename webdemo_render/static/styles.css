@@ -28,6 +28,7 @@ body {
   grid-template-columns: 1fr 1fr;
   grid-template-areas:
     "upload trace"
+    "workflow workflow"
     "result result";
 }
 
@@ -49,6 +50,10 @@ body {
 
 .result-card {
   grid-area: result;
+}
+
+.workflow-card {
+  grid-area: workflow;
 }
 
 h1,
@@ -307,6 +312,21 @@ button:disabled {
   font-size: 0.88rem;
 }
 
+.workflow-step-label {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.workflow-step-image {
+  width: 100%;
+  max-height: 270px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
 .recent-results {
   display: grid;
   gap: 12px;
@@ -413,6 +433,7 @@ button:disabled {
     grid-template-areas:
       "upload"
       "trace"
+      "workflow"
       "result";
   }
 
