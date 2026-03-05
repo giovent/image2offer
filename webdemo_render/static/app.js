@@ -19,6 +19,7 @@ let selectedPreviewUrl = null;
 const recentResults = [];
 const MAX_RECENT_RESULTS = 20;
 const WORKFLOW_IMAGE_BASE = "/workflow_images";
+const DEBUG_RUN_ID = "pre-fix";
 const WORKFLOW_STEPS = {
   waiting: { label: "Waiting to run", image: "END.PNG" },
   imageCheck: { label: "Checking image", image: "IMAGE_CHECK.PNG" },
@@ -29,6 +30,25 @@ const WORKFLOW_STEPS = {
   end: { label: "Finished", image: "END.PNG" },
 };
 let currentWorkflowStep = "waiting";
+
+function sendDebugLog(hypothesisId, location, message, data = {}) {
+  fetch("http://127.0.0.1:7664/ingest/65b46011-cd97-4537-83ca-663759cf104f", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Debug-Session-Id": "3bcecc",
+    },
+    body: JSON.stringify({
+      sessionId: "3bcecc",
+      runId: DEBUG_RUN_ID,
+      hypothesisId,
+      location,
+      message,
+      data,
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+}
 
 function formatTimestamp(isoTimestamp) {
   return new Date(isoTimestamp).toLocaleString();
@@ -99,11 +119,27 @@ function addTraceLine(text) {
 function setWorkflowStep(stepKey) {
   const step = WORKFLOW_STEPS[stepKey];
   if (!step || !workflowStepImage || !workflowStepLabel) {
+    // #region agent log
+    sendDebugLog("H3", "app.js:setWorkflowStep", "Skipped step update", {
+      stepKey,
+      hasStep: Boolean(step),
+      hasImageEl: Boolean(workflowStepImage),
+      hasLabelEl: Boolean(workflowStepLabel),
+    });
+    // #endregion
     return;
   }
   currentWorkflowStep = stepKey;
   workflowStepLabel.textContent = step.label;
   workflowStepImage.src = `${WORKFLOW_IMAGE_BASE}/${step.image}`;
+  // #region agent log
+  sendDebugLog("H3", "app.js:setWorkflowStep", "Workflow step updated", {
+    stepKey,
+    label: step.label,
+    image: step.image,
+    src: workflowStepImage.src,
+  });
+  // #endregion
 }
 
 function mapTraceToWorkflowStep(message) {
@@ -252,6 +288,16 @@ async function startJob() {
   setWorkflowStep("waiting");
   setWorking(true);
   statusText.textContent = "Submitting image...";
+  // #region agent log
+  sendDebugLog("H1", "app.js:startJob", "Layout snapshot at run start", {
+    viewportWidth: window.innerWidth,
+    layoutGridColumns: window.getComputedStyle(document.querySelector(".layout")).gridTemplateColumns,
+    layoutGridAreas: window.getComputedStyle(document.querySelector(".layout")).gridTemplateAreas,
+    uploadWidth: document.querySelector(".upload-card")?.getBoundingClientRect().width ?? null,
+    traceWidth: document.querySelector(".trace-card")?.getBoundingClientRect().width ?? null,
+    workflowWidth: document.querySelector(".workflow-card")?.getBoundingClientRect().width ?? null,
+  });
+  // #endregion
 
   const offerCountry = offerCountryInput.value.trim() || "unknown";
   const submittedImageUrl = URL.createObjectURL(selectedFile);
@@ -312,6 +358,13 @@ async function startJob() {
       const data = JSON.parse(event.data);
       addTraceLine(data.message);
       const stepKey = mapTraceToWorkflowStep(data.message);
+      // #region agent log
+      sendDebugLog("H2", "app.js:traceListener", "Trace received and mapped", {
+        message: String(data.message || "").slice(0, 240),
+        mappedStep: stepKey,
+        previousStep: currentWorkflowStep,
+      });
+      // #endregion
       if (stepKey && stepKey !== currentWorkflowStep) {
         setWorkflowStep(stepKey);
       }
@@ -439,6 +492,38 @@ document.addEventListener("keydown", (event) => {
 runBtn.addEventListener("click", startJob);
 loadExampleBtn.addEventListener("click", loadRandomExample);
 setWorkflowStep("waiting");
+
+if (workflowStepImage) {
+  workflowStepImage.addEventListener("load", () => {
+    // #region agent log
+    sendDebugLog("H4", "app.js:workflowImageLoad", "Workflow image loaded", {
+      src: workflowStepImage.currentSrc || workflowStepImage.src,
+      naturalWidth: workflowStepImage.naturalWidth,
+      naturalHeight: workflowStepImage.naturalHeight,
+    });
+    // #endregion
+  });
+  workflowStepImage.addEventListener("error", () => {
+    // #region agent log
+    sendDebugLog("H4", "app.js:workflowImageLoad", "Workflow image failed to load", {
+      src: workflowStepImage.currentSrc || workflowStepImage.src,
+    });
+    // #endregion
+  });
+}
+
+window.addEventListener("load", () => {
+  // #region agent log
+  sendDebugLog("H1", "app.js:windowLoad", "Initial layout snapshot", {
+    viewportWidth: window.innerWidth,
+    layoutGridColumns: window.getComputedStyle(document.querySelector(".layout")).gridTemplateColumns,
+    layoutGridAreas: window.getComputedStyle(document.querySelector(".layout")).gridTemplateAreas,
+    uploadWidth: document.querySelector(".upload-card")?.getBoundingClientRect().width ?? null,
+    traceWidth: document.querySelector(".trace-card")?.getBoundingClientRect().width ?? null,
+    workflowWidth: document.querySelector(".workflow-card")?.getBoundingClientRect().width ?? null,
+  });
+  // #endregion
+});
 
 window.addEventListener("beforeunload", () => {
   revokeSelectedPreview();

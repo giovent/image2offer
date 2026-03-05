@@ -10,6 +10,7 @@ import sys
 import threading
 import traceback
 import uuid
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -42,6 +43,9 @@ ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 EXAMPLES_DIR = Path(__file__).resolve().parent / "example_images"
 WORKFLOW_IMAGES_DIR = Path(__file__).resolve().parent / "workflow_images"
+DEBUG_LOG_PATH = ROOT_DIR / "debug-3bcecc.log"
+DEBUG_SESSION_ID = "3bcecc"
+DEBUG_RUN_ID = "pre-fix-backend"
 
 
 @dataclass
@@ -115,9 +119,36 @@ jobs: dict[str, JobState] = {}
 jobs_lock = threading.Lock()
 
 
+def _debug_log(hypothesis_id: str, location: str, message: str, data: dict[str, Any]) -> None:
+    # region agent log
+    payload = {
+        "sessionId": DEBUG_SESSION_ID,
+        "runId": DEBUG_RUN_ID,
+        "hypothesisId": hypothesis_id,
+        "location": location,
+        "message": message,
+        "data": data,
+        "timestamp": int(time.time() * 1000),
+    }
+    try:
+        with DEBUG_LOG_PATH.open("a", encoding="utf-8") as log_file:
+            log_file.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+    # endregion
+
+
 def _emit_status(job: JobState, status: str, message: str) -> None:
     job.status = status
     job.add_event("status", {"status": status, "message": message})
+    # region agent log
+    _debug_log(
+        "H2",
+        "app.py:_emit_status",
+        "Status emitted",
+        {"status": status, "message": message},
+    )
+    # endregion
 
 
 def _parse_country_from_example_name(filename: str) -> str:
@@ -163,6 +194,14 @@ def _run_pipeline_job(job_id: str, image_bytes: bytes, image_mime_type: str, off
 
     def on_trace_line(line: str) -> None:
         job.add_event("trace", {"message": line})
+        # region agent log
+        _debug_log(
+            "H2",
+            "app.py:on_trace_line",
+            "Trace line emitted",
+            {"jobId": job_id, "line": line[:240]},
+        )
+        # endregion
 
     trace_writer = TraceWriter(on_trace_line)
     try:
