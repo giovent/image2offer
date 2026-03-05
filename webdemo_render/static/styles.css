@@ -27,8 +27,8 @@ body {
   gap: 16px;
   grid-template-columns: 1fr 1fr;
   grid-template-areas:
+    "upload workflow"
     "upload trace"
-    "workflow workflow"
     "result result";
 }
 
@@ -297,7 +297,7 @@ button:disabled {
   margin: 10px 0 0;
   padding: 0;
   list-style: none;
-  max-height: 360px;
+  max-height: 220px;
   overflow-y: auto;
   display: grid;
   gap: 7px;
@@ -320,7 +320,7 @@ button:disabled {
 
 .workflow-step-image {
   width: 100%;
-  max-height: 270px;
+  max-height: 220px;
   object-fit: contain;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -432,8 +432,8 @@ button:disabled {
     grid-template-columns: 1fr;
     grid-template-areas:
       "upload"
-      "trace"
       "workflow"
+      "trace"
       "result";
   }
 
