@@ -120,12 +120,10 @@ No unit shown, 2+1 product bundle + buy-one-get-one, confusing pricing (avg 269)
 <table>
   <tr>
     <td width="45%" valign="top">
-      <img src="hard.png" alt="Taiwan PXMart flyer example input" />
+      <img src="hard.png" alt="Conad flyer example input" />
     </td>
     <td width="55%" valign="top">
-     <br />
-      
-      <div style="max-height: 320px; overflow-y: auto; border: 1px solid #d0d7de; padding: 8px; border-radius: 6px; background-color: #f6f8fa;">
+      <div style="max-height: 420px; overflow-y: auto; border: 1px solid #d0d7de; padding: 8px; border-radius: 6px; background-color: #f6f8fa;">
         <pre><code>[
   {
     "offer_currency": "TWD",
