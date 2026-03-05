@@ -36,15 +36,17 @@ The web demo is only a simple UI to run this same pipeline online.
 
 ## Example - Easy image
 
-Example input image: Walmart flyer example from `webdemo_render` flow (`example_2_us_walmart.png`).
-
-<table>
+<table style="width: 100%; table-layout: fixed;">
   <tr>
-    <td width="45%" valign="top">
-      <img src="easy.png" alt="Conad flyer example input" />
+    <td width="50%" valign="top" style="text-align: center;">
+      <img
+        src="easy.png"
+        alt="Conad flyer example input"
+        style="display: block; margin: 0 auto; max-height: 260px; max-width: 100%; object-fit: contain;"
+      />
     </td>
-    <td width="55%" valign="top">
-      <div style="max-height: 420px; overflow-y: auto; border: 1px solid #d0d7de; padding: 8px; border-radius: 6px; background-color: #f6f8fa;">
+    <td width="50%" valign="top">
+      <div style="height: 260px; overflow-x: auto; overflow-y: auto; border: 1px solid #d0d7de; padding: 6px; border-radius: 6px; background-color: #f6f8fa;">
         <pre><code>[
   {
     "offer_currency": "EUR",
@@ -117,13 +119,17 @@ Example input image: Walmart flyer example from `webdemo_render` flow (`example_
 No unit shown, 2+1 product bundle + buy-one-get-one, confusing pricing (avg 269), no original price.
 (gpt-5.2, Total input tokens: 203616, Total output tokens: 1856, cost: 0.2 USD)
 
-<table>
+<table style="width: 100%; table-layout: fixed;">
   <tr>
-    <td width="45%" valign="top">
-      <img src="hard.png" alt="Conad flyer example input" />
+    <td width="50%" valign="top" style="text-align: center;">
+      <img
+        src="hard.png"
+        alt="Taiwan PXMart flyer example input"
+        style="display: block; margin: 0 auto; max-height: 260px; max-width: 100%; object-fit: contain;"
+      />
     </td>
-    <td width="55%" valign="top">
-      <div style="max-height: 420px; overflow-y: auto; border: 1px solid #d0d7de; padding: 8px; border-radius: 6px; background-color: #f6f8fa;">
+    <td width="50%" valign="top">
+      <div style="height: 260px; overflow-x: auto; overflow-y: auto; border: 1px solid #d0d7de; padding: 6px; border-radius: 6px; background-color: #f6f8fa;">
         <pre><code>[
   {
     "offer_currency": "TWD",
