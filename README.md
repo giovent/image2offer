@@ -34,7 +34,7 @@ Each node has one clear job, and the state is passed from node to node.
 This agentic flow is the main value of the project.  
 The web demo is only a simple UI to run this same pipeline online.
 
-## Example - Easy image
+## Examples
 
 <table style="width: 100%; table-layout: fixed;">
   <tr>
@@ -112,14 +112,6 @@ The web demo is only a simple UI to run this same pipeline online.
       </div>
     </td>
   </tr>
-</table>
-
-## Example - Hard Image
-
-No unit shown, 2+1 product bundle + buy-one-get-one, confusing pricing (avg 269), no original price.
-(gpt-5.2, Total input tokens: 203616, Total output tokens: 1856, cost: 0.2 USD)
-
-<table style="width: 100%; table-layout: fixed;">
   <tr>
     <td width="50%" valign="top" style="text-align: center;">
       <img
