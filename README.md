@@ -2,6 +2,10 @@
 
 `image2offer` is an agentic AI pipeline that reads a flyer/promo image and returns structured offer data in JSON.
 
+## Try the Demo
+
+[![Try Web Demo](https://img.shields.io/badge/Try%20the%20Web%20Demo-Open%20Now-0A66C2?style=for-the-badge)](https://image2offer-webdemo.onrender.com)
+
 The core idea is simple:
 - Input: one image (for example, an offer from supermarket flyer, a website or a poster).
 - Output: normalized offer objects with price, original price, currency, and product details.
@@ -28,10 +32,6 @@ Each node has one clear job, and the state is passed from node to node.
 
 This agentic flow is the main value of the project.  
 The web demo is only a simple UI to run this same pipeline online.
-
-## Online demo
-
-You can try it here: [https://image2offer-webdemo.onrender.com](https://image2offer-webdemo.onrender.com)
 
 ## Example (Walmart image -> final result)
 
