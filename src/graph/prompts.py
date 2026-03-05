@@ -30,6 +30,7 @@ You have to return a list of offers. Each offer in the list should be a JSON obj
    original_price: float,
    prices_per_quantities: list[float] | None,
    price_per_quantity_units: list[str] | None,
+   offer_requirement: list[str],
    offer_products_bundle: list[{brand: str, 
 			name: str,
 			quantities: list[float],   # exactly one item
@@ -45,6 +46,7 @@ Image with a single offer for a shampoo bottle:
    original_price: 2.59,
    prices_per_quantities: [7.96],
    price_per_quantity_units: ["EUR/l"],
+   offer_requirement: [],
    offer_purchase_quantity: 1,
    offer_products_bundle: [{	brand: "Palmolive", 
 			name: "Shampoo Idratante",
@@ -70,6 +72,7 @@ Image with a single offer for a shampoo bottle but no original price visible:
    original_price: None,
    prices_per_quantities: None,
    price_per_quantity_units: None,
+   offer_requirement: [],
    offer_purchase_quantity: 1,
    offer_products_bundle: [{	brand: "Palmolive", 
 			name: "Shampoo Idratante",
@@ -83,6 +86,7 @@ Image with a single offer for a two variaty of shampoo bottles:
    original_price: 2.59,
    prices_per_quantities: None,
    price_per_quantity_units: None,
+   offer_requirement: [],
    offer_products_bundle: [{	brand: "Palmolive", 
 			name: "Shampoo Idratante Neutro" * ,
 			quantities: [250],
@@ -92,6 +96,7 @@ Image with a single offer for a two variaty of shampoo bottles:
    original_price: 2.59,
    prices_per_quantities: None,
    price_per_quantity_units: None,
+   offer_requirement: [],
    offer_products_bundle: [{	brand: "Palmolive", 
 			name: "Shampoo Idratante Lavanda" * ,
 			quantities: [250],
@@ -106,6 +111,7 @@ Image with a buy-one-get-one offer for a shampoo bottle:
    original_price: 2.59,
    prices_per_quantities: None,
    price_per_quantity_units: None,
+   offer_requirement: ["Buy 1 get 1 free"],
    offer_products_bundle: [
             {brand: "Palmolive", 
 			name: "Shampoo Idratante Neutro" * ,
@@ -124,6 +130,7 @@ Image with two shampoo bottles wrapped up in a single package/bag:
    original_price: 2.59,
    prices_per_quantities: None,
    price_per_quantity_units: None,
+   offer_requirement: [],
    offer_products_bundle: [
             {brand: "Palmolive", 
 			name: "Shampoo Idratante Neutro" ,
@@ -141,6 +148,7 @@ Image with a buy-2-get-one-free offer for a shampoo bottle:
    original_price: 5.18,
    prices_per_quantities: None,
    price_per_quantity_units: None,
+   offer_requirement: ["Buy 2 get 1 free"],
    offer_products_bundle: [
             {brand: "Palmolive", 
 			name: "Shampoo Idratante Neutro" * ,
@@ -171,6 +179,9 @@ Rules:
 - Extract as much information as possible. If some information is not visible, use "None"
 - Return only the str "[{...},{...}], without any other additional character or word.
 - Keep the name of the chosen unit with original language when possible (for example, "bottle", "lavaggio", "條" etc)
+- offer_requirement must be a list of textual requirements/conditions tied to the offer (for example loyalty card, app-only, minimum quantity, coupon).
+- Keep each requirement sentence in the same language suggested by the offer image. Do not translate.
+- If no explicit requirement is visible, return offer_requirement as [].
 - quantities and units must each have exactly one item for each product.
 - Do not guess or invent quantities or units if they are not visible in the image and they are not deductible from the image. 
 """.strip() 
@@ -267,6 +278,7 @@ Each offer object has these keys:
 - original_price
 - prices_per_quantities
 - price_per_quantity_units
+- offer_requirement
 - country_of_origin
 - offer_products
 
@@ -284,6 +296,8 @@ Each product object inside offer_products must have:
 
 Rules:
 - If information is unknown, use empty string "" for string fields, [] for list fields, and null for nullable fields (original_price, prices_per_quantities, price_per_quantity_units, product_line, category, sub_category).
+- offer_requirement is a mandatory list field; if no explicit requirement is present, use [].
+- Keep offer_requirement entries in the same language suggested by the offer image/input. Do not translate them.
 - The barcodes object must always include keys "EAN", "UPC", and "ASIN". Use null when unknown.
 - For each product, quantities and units must each contain exactly one item.
 - If the product is a multipack with the same unit, return the total normalized quantity (for example 120g + 110g => quantities:[230], units:["g"]).

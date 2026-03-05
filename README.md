@@ -8,7 +8,7 @@
 
 The core idea is simple:
 - Input: one image (for example, an offer from supermarket flyer, a website or a poster).
-- Output: normalized offer objects with price, original price, currency, and product details.
+- Output: normalized offer objects with price, original price, currency, offer requirements, and product details.
 - Quantity/unit invariant: each product returns exactly one quantity and one unit (`quantities` and `units` are single-item lists). Multipacks are collapsed to one normalized total (for example `120g + 110g -> [230], ["g"]`).
 
 ## How the agentic AI works
@@ -54,6 +54,7 @@ The web demo is only a simple UI to run this same pipeline online.
     "original_price": 2.39,
     "prices_per_quantities": [1.14],
     "price_per_quantity_units": ["EUR/L"],
+    "offer_requirement": [],
     "country_of_origin": "Italy",
     "offer_products": [
       {
@@ -85,6 +86,7 @@ The web demo is only a simple UI to run this same pipeline online.
     "original_price": 2.39,
     "prices_per_quantities": [1.14],
     "price_per_quantity_units": ["EUR/L"],
+    "offer_requirement": [],
     "country_of_origin": "Italy",
     "offer_products": [
       {
@@ -129,6 +131,7 @@ The web demo is only a simple UI to run this same pipeline online.
     "original_price": 1076,
     "prices_per_quantities": [269],
     "price_per_quantity_units": ["TWD/組"],
+    "offer_requirement": ["限會員卡"],
     "country_of_origin": "Taiwan",
     "offer_products": [
       {

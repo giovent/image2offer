@@ -28,6 +28,7 @@ FINAL_OFFERS_RESPONSE_SCHEMA: dict[str, Any] = {
           "original_price",
           "prices_per_quantities",
           "price_per_quantity_units",
+          "offer_requirement",
           "country_of_origin",
           "offer_products",
         ],
@@ -41,6 +42,10 @@ FINAL_OFFERS_RESPONSE_SCHEMA: dict[str, Any] = {
           },
           "price_per_quantity_units": {
             "type": ["array", "null"],
+            "items": {"type": "string"},
+          },
+          "offer_requirement": {
+            "type": "array",
             "items": {"type": "string"},
           },
           "country_of_origin": {"type": "string"},
