@@ -195,7 +195,7 @@ function addRecentResult(record) {
 async function startJob() {
   if (!selectedFile) {
     statusText.textContent = "Please select an image first.";
-    return;
+    return false;
   }
 
   if (activeEventSource) {
@@ -211,6 +211,12 @@ async function startJob() {
   const submittedFileName = selectedFile.name || "clipboard-image";
   let finalized = false;
   let latestResult = null;
+  const finishJob = () => {
+    setWorking(false);
+    offerCountryInput.value = "";
+    activeEventSource?.close();
+    activeEventSource = null;
+  };
 
   const form = new FormData();
   form.append("image", selectedFile);
@@ -248,8 +254,7 @@ async function startJob() {
         finalized = true;
       }
       if (data.status === "success" || data.status === "error") {
-        setWorking(false);
-        activeEventSource?.close();
+        finishJob();
       }
     });
 
@@ -284,9 +289,9 @@ async function startJob() {
       } else {
         addTraceLine("[Error] Event stream closed.");
       }
-      setWorking(false);
-      activeEventSource?.close();
+      finishJob();
     });
+    return true;
   } catch (err) {
     statusText.textContent = `error: ${err.message}`;
     addRecentResult({
@@ -298,7 +303,8 @@ async function startJob() {
       result: null,
       error: err.message,
     });
-    setWorking(false);
+    finishJob();
+    return false;
   }
 }
 
@@ -326,7 +332,8 @@ async function loadRandomExample() {
     const file = new File([blob], fileName, { type: inferredType });
     setSelectedFile(file);
     offerCountryInput.value = country || parseCountryFromExampleFilename(fileName);
-    statusText.textContent = `Loaded example: ${fileName}`;
+    statusText.textContent = `Loaded example: ${fileName}. Running...`;
+    await startJob();
   } catch (err) {
     statusText.textContent = `error: ${err.message}`;
   }
