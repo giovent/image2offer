@@ -9,6 +9,7 @@
 The core idea is simple:
 - Input: one image (for example, an offer from supermarket flyer, a website or a poster).
 - Output: normalized offer objects with price, original price, currency, and product details.
+- Quantity/unit invariant: each product returns exactly one quantity and one unit (`quantities` and `units` are single-item lists). Multipacks are collapsed to one normalized total (for example `120g + 110g -> [230], ["g"]`).
 
 ## How the agentic AI works
 
@@ -33,69 +34,87 @@ Each node has one clear job, and the state is passed from node to node.
 This agentic flow is the main value of the project.  
 The web demo is only a simple UI to run this same pipeline online.
 
-## Example (Walmart image -> final result)
+## Example - Easy image
 
 Example input image: Walmart flyer example from `webdemo_render` flow (`example_2_us_walmart.png`).
 
-![Walmart flyer example input](webdemo_render/example_images/example_2_us_walmart.png)
+![Conad flyer example input](easy.png)
 
-Example final output:
+Example final output (2 offers, one per product):
 
 ```json
 [
-    {
-        "offer_currency": "USD",
-        "offer_price": 4.97,
-        "original_price": 7.96,
-        "country_of_origin": "US",
-        "offer_products": [
-            {
-                "country": "US",
-                "brand": "Gay Lea",
-                "name": "Unsalted Butter",
-                "image_url": null,
-                "barcodes": {"UPC": ["066013905619"]},
-                "quantities": [454.0],
-                "units": ["g"],
-                "product_line": "Unsalted Butter",
-                "category": "butter",
-                "sub_category": "unsalted butter"
-            }
-        ]
-    },
-    {
-        "offer_currency": "USD",
-        "offer_price": 4.97,
-        "original_price": 7.96,
-        "country_of_origin": "US",
-        "offer_products": [
-            {
-                "country": "US",
-                "brand": "Gay Lea",
-                "name": "Salted Butter (454 g)",
-                "image_url": null,
-                "barcodes": {"UPC": ["066013598620"]},
-                "quantities": [454.0],
-                "units": ["g"],
-                "product_line": "Salted Butter",
-                "category": "butter",
-                "sub_category": "salted butter"
-            }
-        ]
-    }
+  {
+    "offer_currency": "EUR",
+    "offer_price": 1.99,
+    "original_price": 2.39,
+    "prices_per_quantities": [1.14],
+    "price_per_quantity_units": ["EUR/L"],
+    "country_of_origin": "Italy",
+    "offer_products": [
+      {
+        "country": "",
+        "brand": "Coca-Cola",
+        "name": "Coca-Cola Regular",
+        "image_url": "",
+        "barcodes": {
+          "EAN": [
+            "5000112600179",
+            "5000112528305",
+            "5449000646293",
+            "5000112611861"
+          ],
+          "UPC": None,
+          "ASIN": None
+        },
+        "quantities": [1750],
+        "units": ["ml"],
+        "product_line": "Coca-Cola Regular 1.75\x7fL",
+        "category": "bevanda analcolica",
+        "sub_category": "bibita gassata cola"
+      }
+    ]
+  },
+  {
+    "offer_currency": "EUR",
+    "offer_price": 1.99,
+    "original_price": 2.39,
+    "prices_per_quantities": [1.14],
+    "price_per_quantity_units": ["EUR/L"],
+    "country_of_origin": "Italy",
+    "offer_products": [
+      {
+        "country": "",
+        "brand": "Coca-Cola",
+        "name": "Coca-Cola Zero Zuccheri 1.75\x7fL",
+        "image_url": "",
+        "barcodes": {
+          "EAN": [
+            "5000112600186",
+            "5000112600193"
+          ],
+          "UPC": None,
+          "ASIN": None
+        },
+        "quantities": [1750],
+        "units": ["ml"],
+        "product_line": "Coca-Cola Zero Zuccheri PET 1.75\x7fL",
+        "category": "bevanda gassata",
+        "sub_category": "cola senza zuccheri"
+      }
+    ]
+  }
 ]
-
-
-
 ```
 
-## Example (Taiwan PXMart image -> final result)
+## Example - Hard Image
 
-Example input image: PXMart flyer example from `webdemo_render` flow (`example_5_taiwan_pxmart.png`).
+No unit shown, 2+1 product bundle + buy-one-get-one, confusing pricing (avg 269), no original price.
 
-![Taiwan PXMart flyer example input](webdemo_render/example_images/example_5_taiwan_pxmart.png)
+![Taiwan PXMart flyer example input](hard.png)
 
-Example final output:
+Example final output using high-reasoning models
+(gpt-5.2, Total input tokens: 203616, Total output tokens: 1856, cost: 0.2 USD):
 
 ```json
 [
@@ -103,39 +122,25 @@ Example final output:
     "offer_currency": "TWD",
     "offer_price": 538,
     "original_price": 1076,
+    "prices_per_quantities": [269],
+    "price_per_quantity_units": ["TWD/組"],
     "country_of_origin": "Taiwan",
     "offer_products": [
       {
-        "country": "Taiwan",
+        "country": "",
         "brand": "Colgate",
-        "name": "高露潔抗敏好口氣牙膏",
-        "image_url": null,
+        "name": "高露潔 抗敏好口氣 牙 膏",
+        "image_url": "",
         "barcodes": {
-          "EAN": null,
-          "UPC": null,
-          "ASIN": null
+          "EAN": ["4710168719848"],
+          "UPC": None,
+          "ASIN": None
         },
         "quantities": [3],
-        "units": ["組"],
-        "product_line": "抗敏 好口氣",
+        "units": ["條"],
+        "product_line": "全效 口氣健康專家",
         "category": "牙膏",
-        "sub_category": "抗敏牙膏／清新口氣"
-      },
-      {
-        "country": "Taiwan",
-        "brand": "Colgate",
-        "name": "高露潔抗敏好口氣牙膏",
-        "image_url": null,
-        "barcodes": {
-          "EAN": null,
-          "UPC": null,
-          "ASIN": null
-        },
-        "quantities": [3],
-        "units": ["組"],
-        "product_line": "高露潔抗敏好口氣",
-        "category": "牙膏",
-        "sub_category": "抗敏感牙膏"
+        "sub_category": "清新口氣／抗敏感"
       }
     ]
   }

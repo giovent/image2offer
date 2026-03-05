@@ -17,6 +17,7 @@ class GraphState(TypedDict):
 
     image_check_model_name: str | None
     image_decoding_model_name: str | None
+    offer_info_verification_model_name: str | None
     product_enrichment_model_name: str | None
     product_image_search_model_name: str | None
     final_offer_composition_model_name: str | None

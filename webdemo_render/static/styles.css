@@ -357,6 +357,21 @@ button:disabled {
   font-size: 0.88rem;
 }
 
+.history-unit-price {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid #9fd8ae;
+  background: #ebf8ef;
+  color: #196b2f;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
 .history-status {
   text-transform: uppercase;
   letter-spacing: 0.02em;

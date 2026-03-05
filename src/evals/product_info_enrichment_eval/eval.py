@@ -39,6 +39,7 @@ class ProductInfoEnrichmentEval():
         for offer_set, offer_country in offers:
             state = GraphState(
                 decoded_offers = offer_set,
+                offer_info_verification_model_name=None,
                 image_enrichment_model_name=self.model_name,
                 offer_country=offer_country
             ) # type: ignore

@@ -1,6 +1,8 @@
 import re
 import time
 import json
+import ast
+import math
 from typing import Any
 
 import base64
@@ -20,11 +22,27 @@ FINAL_OFFERS_RESPONSE_SCHEMA: dict[str, Any] = {
       "items": {
         "type": "object",
         "additionalProperties": False,
-        "required": ["offer_currency", "offer_price", "original_price", "country_of_origin", "offer_products"],
+        "required": [
+          "offer_currency",
+          "offer_price",
+          "original_price",
+          "prices_per_quantities",
+          "price_per_quantity_units",
+          "country_of_origin",
+          "offer_products",
+        ],
         "properties": {
           "offer_currency": {"type": "string"},
           "offer_price": {"type": ["number", "null"]},
           "original_price": {"type": ["number", "null"]},
+          "prices_per_quantities": {
+            "type": ["array", "null"],
+            "items": {"type": "number"},
+          },
+          "price_per_quantity_units": {
+            "type": ["array", "null"],
+            "items": {"type": "string"},
+          },
           "country_of_origin": {"type": "string"},
           "offer_products": {
             "type": "array",
@@ -73,8 +91,18 @@ FINAL_OFFERS_RESPONSE_SCHEMA: dict[str, Any] = {
                     },
                   },
                 },
-                "quantities": {"type": "array", "items": {"type": "number"}},
-                "units": {"type": "array", "items": {"type": "string"}},
+                "quantities": {
+                  "type": "array",
+                  "items": {"type": "number"},
+                  "minItems": 1,
+                  "maxItems": 1,
+                },
+                "units": {
+                  "type": "array",
+                  "items": {"type": "string"},
+                  "minItems": 1,
+                  "maxItems": 1,
+                },
                 "product_line": {"type": ["string", "null"]},
                 "category": {"type": ["string", "null"]},
                 "sub_category": {"type": ["string", "null"]},
@@ -88,7 +116,6 @@ FINAL_OFFERS_RESPONSE_SCHEMA: dict[str, Any] = {
 }
 
 FINAL_OFFER_COMPOSITION_MAX_ATTEMPTS = 2
-
 
 class ImageCheckNode:
   def __init__(self, client: LLM_Client) -> None:
@@ -170,19 +197,21 @@ class OfferInfoExtractionNode:
     
     offer_country = state.get("offer_country", "Unknown")
 
+    extraction_system_prompt = OFFER_INFO_EXTRACTION_SYSTEM_PROMPT
+    extraction_user_prompt = OFFER_INFO_EXTRACTION_USER_PROMPT.format(offer_country=offer_country)
     response = self.client.responses.create(
       model=model_name,
       input=[
         {
           "role": "system",
           "content": [
-            {"type": "input_text", "text": OFFER_INFO_EXTRACTION_SYSTEM_PROMPT},
+            {"type": "input_text", "text": extraction_system_prompt},
           ],
         },
         {
           "role": "user",
           "content": [
-            {"type": "input_text", "text": OFFER_INFO_EXTRACTION_USER_PROMPT.format(offer_country=offer_country)},
+            {"type": "input_text", "text": extraction_user_prompt},
             {
               "type": "input_image",
               "image_url": data_url,
@@ -192,22 +221,44 @@ class OfferInfoExtractionNode:
         },
       ],
     )
-    reply_content = response.output_text.strip("```").strip("json").strip()
-    reply_content = re.sub(r":\s*None\b", ": null", reply_content)
-    reply_content = re.sub(r'([{,])\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'\1"\2":', reply_content)
+
+    reply_content = self._normalize_offer_reply(response.output_text)
+
     try:
-      offers = json.loads(reply_content)
-    except json.JSONDecodeError:
-      reply_content = reply_content.replace("null", "None")
-      offers = eval(reply_content) # Convert the string representation of the list of dicts into an actual list of dicts
+      offers = self._parse_offers(reply_content)
+    except (json.JSONDecodeError, ValueError, SyntaxError):
+      warnings = list(state.get("warnings", []) or [])
+      warnings.append("Offer info extraction output was not parseable.")
+      state["warnings"] = warnings
+      offers = []
     state["decoded_offers"] = offers   
 
     if self.save_result_in_txt:
       self.save_to_txt(offers)
     
-    print(f"[🔎 Offer Info Extraction Node] Offers decoded: {len(offers)}. Total products: {sum(len(offer["offer_products_bundle"]) for offer in offers)}")
+    total_products = sum(len(offer.get("offer_products_bundle", [])) for offer in offers)
+    print(f"[🔎 Offer Info Extraction Node] Offers decoded: {len(offers)}. Total products: {total_products}")
     state["messages"] = list(state.get("messages", [])) + [AIMessage(content=reply_content)] # pyright: ignore[reportArgumentType]
     return state
+
+  def _normalize_offer_reply(self, reply_content: str) -> str:
+    normalized = reply_content.strip("```").strip("json").strip()
+    normalized = re.sub(r":\s*None\b", ": null", normalized)
+    normalized = re.sub(r'([{,])\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'\1"\2":', normalized)
+    return normalized
+
+  def _parse_offers(self, reply_content: str) -> list[dict[str, Any]]:
+    try:
+      parsed_offers = json.loads(reply_content)
+    except json.JSONDecodeError:
+      python_like = reply_content.replace("null", "None")
+      parsed_offers = ast.literal_eval(python_like)
+
+    if not isinstance(parsed_offers, list):
+      raise ValueError("Decoded offers must be a list.")
+    if not all(isinstance(offer, dict) for offer in parsed_offers):
+      raise ValueError("Decoded offers list must contain dict items.")
+    return parsed_offers
   
   def save_to_txt(self, offers: list[dict], txt_filename: str = ""):
     if txt_filename == "":
@@ -219,7 +270,7 @@ class OfferInfoExtractionNode:
         print(f"Offers decoded successfully written to '{txt_filename}'")
     except (OSError, IOError) as e:
         print(f"Error writing to file: {e}")
-  
+
 class ProductEnrichmentNode:
   def __init__(self, client: LLM_Client) -> None:
     self.tools = []
@@ -414,12 +465,14 @@ class FinalOfferCompositionNode:
     final_offers_info: list[dict[str, Any]] = []
     parse_successful = False
     last_reply_content = ""
+    validation_error = ""
     for attempt in range(FINAL_OFFER_COMPOSITION_MAX_ATTEMPTS):
       retry_instruction = ""
       if attempt > 0:
         retry_instruction = (
-          "\n\nRetry reason: your previous answer was not parseable as strict schema JSON. "
-          "Return only the JSON array that matches the schema."
+          "\n\nRetry reason: your previous answer failed parsing/validation. "
+          f"{validation_error} "
+          "Return only the JSON payload that matches the strict schema."
         )
       response = self.client.responses.create(
         model=model_name,
@@ -451,9 +504,14 @@ class FinalOfferCompositionNode:
       last_reply_content = response.output_text.strip()
       parsed_final_offers = self._parse_final_offers_response(last_reply_content)
       if parsed_final_offers is not None:
-        final_offers_info = parsed_final_offers
-        parse_successful = True
-        break
+        try:
+          final_offers_info = self._normalize_single_quantity_per_product(parsed_final_offers)
+          parse_successful = True
+          break
+        except ValueError as exc:
+          validation_error = str(exc)
+      else:
+        validation_error = "JSON payload could not be parsed."
       print(f"[✅ Final Offer Composition Node]: schema JSON parsing failed, retry {attempt + 1}/{FINAL_OFFER_COMPOSITION_MAX_ATTEMPTS}.")
 
     if parse_successful:
@@ -466,6 +524,89 @@ class FinalOfferCompositionNode:
       print(f"[✅ Final Offer Composition Node]: Error parsing JSON after retries. Last reply: {last_reply_content!r}")
     print(f"[✅ Final Offer Composition Node] Result: {final_offers_info}")
     return state
+
+  def _normalize_single_quantity_per_product(self, offers: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    for offer_idx, offer in enumerate(offers):
+      offer_products = offer.get("offer_products")
+      if not isinstance(offer_products, list):
+        raise ValueError(f"Offer {offer_idx} is missing a valid offer_products list.")
+      for product_idx, product in enumerate(offer_products):
+        if not isinstance(product, dict):
+          raise ValueError(f"Offer {offer_idx}, product {product_idx} is not an object.")
+        quantities = product.get("quantities")
+        units = product.get("units")
+        if not isinstance(quantities, list) or not isinstance(units, list):
+          raise ValueError(f"Offer {offer_idx}, product {product_idx} must contain list quantities/units.")
+        if len(quantities) == 0 or len(units) == 0 or len(quantities) != len(units):
+          raise ValueError(f"Offer {offer_idx}, product {product_idx} has invalid quantities/units length.")
+
+        grouped_totals: dict[str, float] = {}
+        display_units: dict[str, str] = {}
+        for quantity, unit in zip(quantities, units):
+          if not isinstance(quantity, (int, float)):
+            raise ValueError(f"Offer {offer_idx}, product {product_idx} has non-numeric quantity.")
+          if not isinstance(unit, str) or unit.strip() == "":
+            raise ValueError(f"Offer {offer_idx}, product {product_idx} has empty unit.")
+          canonical_key, canonical_display, multiplier = self._canonicalize_unit(unit)
+          grouped_totals[canonical_key] = grouped_totals.get(canonical_key, 0.0) + (float(quantity) * multiplier)
+          display_units[canonical_key] = canonical_display
+
+        if len(grouped_totals) != 1:
+          raise ValueError(
+            f"Offer {offer_idx}, product {product_idx} has incompatible units {list(display_units.values())}."
+          )
+
+        normalized_key = next(iter(grouped_totals))
+        total_quantity = grouped_totals[normalized_key]
+        normalized_quantity: float | int
+        if math.isfinite(total_quantity) and total_quantity.is_integer():
+          normalized_quantity = int(total_quantity)
+        else:
+          normalized_quantity = round(total_quantity, 6)
+        product["quantities"] = [normalized_quantity]
+        product["units"] = [display_units[normalized_key]]
+    return offers
+
+  def _canonicalize_unit(self, unit: str) -> tuple[str, str, float]:
+    cleaned = unit.strip()
+    lowered = cleaned.casefold()
+    direct_map: dict[str, tuple[str, str, float]] = {
+      "g": ("mass_g", "g", 1.0),
+      "gram": ("mass_g", "g", 1.0),
+      "grams": ("mass_g", "g", 1.0),
+      "gr": ("mass_g", "g", 1.0),
+      "kg": ("mass_g", "g", 1000.0),
+      "kilogram": ("mass_g", "g", 1000.0),
+      "kilograms": ("mass_g", "g", 1000.0),
+      "ml": ("volume_ml", "ml", 1.0),
+      "milliliter": ("volume_ml", "ml", 1.0),
+      "milliliters": ("volume_ml", "ml", 1.0),
+      "millilitre": ("volume_ml", "ml", 1.0),
+      "millilitres": ("volume_ml", "ml", 1.0),
+      "l": ("volume_ml", "ml", 1000.0),
+      "lt": ("volume_ml", "ml", 1000.0),
+      "liter": ("volume_ml", "ml", 1000.0),
+      "liters": ("volume_ml", "ml", 1000.0),
+      "litre": ("volume_ml", "ml", 1000.0),
+      "litres": ("volume_ml", "ml", 1000.0),
+      "bottle": ("count_bottle", "bottle", 1.0),
+      "bottles": ("count_bottle", "bottle", 1.0),
+      "flacone": ("count_bottle", "flacone", 1.0),
+      "flaconi": ("count_bottle", "flacone", 1.0),
+      "piece": ("count_piece", "piece", 1.0),
+      "pieces": ("count_piece", "piece", 1.0),
+      "pc": ("count_piece", "piece", 1.0),
+      "pcs": ("count_piece", "piece", 1.0),
+      "pack": ("count_pack", "pack", 1.0),
+      "packs": ("count_pack", "pack", 1.0),
+      "組": ("count_pack", "組", 1.0),
+      "個": ("count_piece", "個", 1.0),
+      "條": ("count_piece", "條", 1.0),
+      "条": ("count_piece", "條", 1.0),
+    }
+    if lowered in direct_map:
+      return direct_map[lowered]
+    return (f"raw:{lowered}", cleaned, 1.0)
 
   def _parse_final_offers_response(self, reply_content: str) -> list[dict[str, Any]] | None:
     try:

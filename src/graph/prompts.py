@@ -18,19 +18,24 @@ Does this image contain a product offer? Return only True or False.
 """.strip()
 
 OFFER_INFO_EXTRACTION_SYSTEM_PROMPT = """
-You are an offer information extractor. Your job is to extract structured information about the products' offer from the image you receive.
+You are an offer information extractor. Your job is to extract structured information about products' offer from an image you receive.
 
-The image you receive usually contains a single offer, but could refer to multiple products. For example, a shampoo bottle with special price might present two variations of shampoo flavours. In that case the image 
+The image contains at least one offer. An offer is the combination of 1. price and 2. a set of products included for that price.
+
+In the most general case, an offer means: pay x and get [product1, product2, product3, service1, fidelty_points].
 
 You have to return a list of offers. Each offer in the list should be a JSON object containing the following fields:
 {  offer_currency: str,
    offer_price: float,
    original_price: float,
+   prices_per_quantities: list[float] | None,
+   price_per_quantity_units: list[str] | None,
    offer_products_bundle: list[{brand: str, 
 			name: str,
-			quantities: list[float],
-			units: list[str]}]
+			quantities: list[float],   # exactly one item
+			units: list[str]}]         # exactly one item
 }
+
 Here are some examples.
 
 Image with a single offer for a shampoo bottle:
@@ -38,40 +43,59 @@ Image with a single offer for a shampoo bottle:
    offer_currency: "EUR",
    offer_price: 1.99,
    original_price: 2.59,
+   prices_per_quantities: [7.96],
+   price_per_quantity_units: ["EUR/l"],
    offer_purchase_quantity: 1,
    offer_products_bundle: [{	brand: "Palmolive", 
 			name: "Shampoo Idratante",
-			quantities: [250, 1],
-			units: ["ml","bottle"]}]
+			quantities: [250],
+			units: ["ml"]}]
 }]
 
-Image with a single offer for a shampoo bottl but no original price visible:
+You need to first check what kind of offer is shown in the image, this will help extracting information:
+- Simple discounted price on product(s)
+- Buy one get one free offer (or such like offers like buy 2 get 1 free, buy 3 get 2 free, etc)
+- Buy 2 with special price offer
+- Bundle deal (more products together for a certain price)
+
+Depending on the type of offer, you will need to check what is the acutal price of the offer:
+- the prices in the image could be the total price of the offer, or the mean price of one product or price for quantity
+- the price in the image could be the price per quantity
+- the price shown could be the original price on one piece, but could show "buy one get one free" or "buy 2 with special price", so the total price of the offer should be appropriately calculated.
+
+Image with a single offer for a shampoo bottle but no original price visible:
 [{ offer_type: "Discount",
    offer_currency: "EUR",
    offer_price: 1.99,
    original_price: None,
+   prices_per_quantities: None,
+   price_per_quantity_units: None,
    offer_purchase_quantity: 1,
    offer_products_bundle: [{	brand: "Palmolive", 
 			name: "Shampoo Idratante",
-			quantities: [250, 1],
-			units: ["ml","bottle"]}]
+			quantities: [250],
+			units: ["ml"]}]
 }]
 
 Image with a single offer for a two variaty of shampoo bottles:
 [{ offer_currency: "EUR",
    offer_price: 1.99,
    original_price: 2.59,
+   prices_per_quantities: None,
+   price_per_quantity_units: None,
    offer_products_bundle: [{	brand: "Palmolive", 
 			name: "Shampoo Idratante Neutro" * ,
-			quantities: [250, 1],
-			units: ["ml","bottle"]}] },
+			quantities: [250],
+			units: ["ml"]}] },
 {  offer_currency: "EUR",
    offer_price: 1.99,
    original_price: 2.59,
+   prices_per_quantities: None,
+   price_per_quantity_units: None,
    offer_products_bundle: [{	brand: "Palmolive", 
 			name: "Shampoo Idratante Lavanda" * ,
-			quantities: [250, 1],
-			units: ["ml","bottle"]}]
+			quantities: [250],
+			units: ["ml"]}]
 }] 
 * Important Note: that very much often two products are shown together, but a single price offer is shown. In that case you should treat the image as having two offers, one for each independent product or sku, and not a single offer with two products inside, since that would mean that those two products TOGETHER have that price, while instead each of the two products has that price independently from the other. So in the example above, even if there is a single price shown for the two shampoo bottles together, you should return two separate offers, one for each shampoo bottle, both having the same price.
 Also note that the name of the two products variations are independent, the name shouldn't be something like "Shampoo Idratante Neutro/Lavanda", but two different names as in the example above.
@@ -80,46 +104,75 @@ Image with a buy-one-get-one offer for a shampoo bottle:
 [{ offer_currency: "EUR",
    offer_price: 1.99,
    original_price: 2.59,
+   prices_per_quantities: None,
+   price_per_quantity_units: None,
    offer_products_bundle: [
             {brand: "Palmolive", 
 			name: "Shampoo Idratante Neutro" * ,
-			quantities: [250, 1],
-			units: ["ml","flacone"]},
+			quantities: [250],
+			units: ["ml"]},
             {brand: "Palmolive", 
 			name: "Shampoo Idratante Neutro" * ,
-			quantities: [250, 1],
-			units: ["ml","flacone"]}] *
+			quantities: [250],
+			units: ["ml"]}] *
 }] 
 * Note that the products bundle list has the same product repeated twice
+
+Image with two shampoo bottles wrapped up in a single package/bag:
+[{ offer_currency: "EUR",
+   offer_price: 1.99,
+   original_price: 2.59,
+   prices_per_quantities: None,
+   price_per_quantity_units: None,
+   offer_products_bundle: [
+            {brand: "Palmolive", 
+			name: "Shampoo Idratante Neutro" ,
+			quantities: [250],
+			units: ["ml"]},
+             {brand: "Palmolive", 
+			name: "Shampoo Idratante Neutro" ,
+			quantities: [250],
+			units: ["ml"]} ] 
+}]  (as you can see the quantities are NOT added, as it is not a single product (one can suppose those bottles are also sold singularly))
 
 Image with a buy-2-get-one-free offer for a shampoo bottle:
 [{ offer_currency: "EUR",
    offer_price: 3.98,
    original_price: 5.18,
+   prices_per_quantities: None,
+   price_per_quantity_units: None,
    offer_products_bundle: [
             {brand: "Palmolive", 
 			name: "Shampoo Idratante Neutro" * ,
-			quantities: [250, 1],
-			units: ["ml","flacone"]},
+			quantities: [250],
+			units: ["ml"]},
             {brand: "Palmolive", 
 			name: "Shampoo Idratante Neutro" * ,
-			quantities: [250, 1],
-			units: ["ml","flacone"]},
+			quantities: [250],
+			units: ["ml"]},
             {brand: "Palmolive", 
 			name: "Shampoo Idratante Neutro" * ,
-			quantities: [250, 1],
-			units: ["ml","flacone"]}] *
+			quantities: [250],
+			units: ["ml"]}] *
 }] 
 * Note that the products bundle list has the same product repeated three times, and the price is twice the price of the single product, because you get one free when you buy two.
 
-Whenever the quantity can be specified in more ways, like in the shampoo ml/bottle example, try to specify all the possible quantity/unit combinations but only if clearly visible from the image. For example, for washing machines soap, the quantity is specified sometimes in n. of washes (how many time you can do the laundry), which is usually more useful than simply specifying the liters of the product, but if the n. of washes is not visible in the image, specify only the liters. 
+For each product, quantities and units must always contain exactly one value each. If multiple packs of the same unit are visible (for example 120g + 110g), return the total normalized quantity in one unit (for example quantities: [230], units: ["g"]). If multiple alternative unit systems are visible (for example ml and bottle), pick the most precise measurable unit.
+
+If a per-quantity price is visible (for example "10.22 USD/Piece", "2.34 EUR/Lavaggio", "34.01 USD/m", "120.30 USD/l"), extract it at offer level:
+- prices_per_quantities: list of numeric prices, e.g. [10.22, 2.34]
+- price_per_quantity_units: list of matching per-quantity units including currency and denominator, e.g. ["USD/Piece", "EUR/Lavaggio"]
+- If unknown, set both fields to None.
+- If provided as lists, their indexes must match and lengths must be equal.
 
 The user might be sharing the origin country of the offer with you, which might be useful to correctly interpret the offer. For example, in some countries it is more common to show the original price and the discounted price together, while in other countries it is more common to only show the discounted price and not the original price. The country information could help you catch the language of the offer right away.
 
 Rules:
 - Extract as much information as possible. If some information is not visible, use "None"
 - Return only the str "[{...},{...}], without any other additional character or word.
-- Keep the name of the units with original language (for example, "bottle", "lavaggio", "條" etc)
+- Keep the name of the chosen unit with original language when possible (for example, "bottle", "lavaggio", "條" etc)
+- quantities and units must each have exactly one item for each product.
+- Do not guess or invent quantities or units if they are not visible in the image and they are not deductible from the image. 
 """.strip() 
 
 OFFER_INFO_EXTRACTION_USER_PROMPT = """
@@ -134,13 +187,12 @@ to enrich the product information with additional details after researching onli
 For example you will be given:
 - Product brand: "Palmolive"
 - Product name (sometimes a guess or general name, not the "official" retailer name, for example "Shampoo Idratante (versione bianca)"): "Shampoo Idratante Neutro"
-- Product quantities: "[250, 1]"
-- Product units: ["ml","flacone"]
+- Product quantities: "[250]"
+- Product units: ["ml"]
 
 And you should enrich this information with details such as:
 - [crucial] Double-checked Product Brand (the right brand name, after checking for typos and verifying it is a real brand)
 - [crucial] Double-checked Product Name (the right product name, after checking for typos and verifying it is a real product)
-- [crucial] Double-checked Product Quantities and Units (the right product quantities and units, after checking for typos and verifying they are real measurements for that product)If the units are not standards for example "flacone", write the full name of the unit, not the abbreviation like "flac.".)
 - Product Barcodes: a dict of product's EAN or UPC or ASIN (any barcode associated with the product (sometimes one product has more than one barcode for example {"EAN": ["1234567890123", "0987654321098"], "UPC": ["1234567890123"]}) if you can find it based on the product name and brand, otherwise return empty dict. 
 - Product line, meaning what is the general name of the product, not considering the quantity of the package. For example "Spagetti n.5" is the product line of the product "Spagetti n.5 500g", since the same product (that kind of spaghetti) is sold in different formats. The product line name should be simple and should contain a clear single product line name to which the product belongs. If no clear product line is found, make this name empty.
 - Product category (e.g. "shampoo", "washing machine soap", "toothpaste", etc)
@@ -156,8 +208,8 @@ Rules:
 - Return a string containing a tuple (crucials: bool, enriched_product_info). "crucials" should be "True" if the 3 crucial information could be extracted, and "False" otherwise. The enriched_product_info should be a dictionary with the following format:
 {  "brand": str,
    "name": str,
-   "quantities": list[float],
-   "units": list[str],
+   "quantities": list[float],   // exactly one item
+   "units": list[str],          // exactly one item
    "barcodes": dict[str, list[str] | None,
    "product_line": str | None,
    "category": str | None,
@@ -166,6 +218,7 @@ Rules:
 - Only reply with the above format ( "(True, {...})" ), do not add any other character, word or sentence in your response.
 - You can change the name of the product if you find the right product, but keep cannot refer to a different product. Also keep it in the same language as the one in the input data
 - Keep the units with the original language (for example, for the units, "bottle", "lavaggio", "條" etc)
+- quantities and units must each have exactly one item. If multiple packs are present, return the total normalized quantity with one unit.
 - Do not comment on your answer.
 
 """.strip()
@@ -212,6 +265,8 @@ Each offer object has these keys:
 - offer_currency
 - offer_price
 - original_price
+- prices_per_quantities
+- price_per_quantity_units
 - country_of_origin
 - offer_products
 
@@ -228,8 +283,13 @@ Each product object inside offer_products must have:
 - sub_category
 
 Rules:
-- If information is unknown, use empty string "" for string fields, [] for list fields, and null for nullable fields (original_price, product_line, category, sub_category).
+- If information is unknown, use empty string "" for string fields, [] for list fields, and null for nullable fields (original_price, prices_per_quantities, price_per_quantity_units, product_line, category, sub_category).
 - The barcodes object must always include keys "EAN", "UPC", and "ASIN". Use null when unknown.
+- For each product, quantities and units must each contain exactly one item.
+- If the product is a multipack with the same unit, return the total normalized quantity (for example 120g + 110g => quantities:[230], units:["g"]).
+- Do not return mixed incompatible units for the same product (for example liters and bottles together).
+- prices_per_quantities and price_per_quantity_units are offer-level fields describing per-quantity prices (for example 10.22 with unit "USD/Piece"). The price_per_quantity should reflect exactly the units inside the products. If products are describes as "l", "bottles", the price_per_quantity should be currency/l, currency/bottle, etc.
+- If prices_per_quantities and price_per_quantity_units are not null, they must be arrays with the same length and aligned by index.
 - Do not merge offers together, refine each offer reguardless of the other offers in the list provided.
 - Only return each product image_url if the link provided is valid and points to an image, not to a 404 webpage or any other resource.
 - Do not add any other fields. Do not comment on your answer.

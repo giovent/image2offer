@@ -43,6 +43,7 @@ class IndividualOfferNEval():
                 offer_json={}, 
                 image_check_model_name=None,
                 image_decoding_model_name=self.model_name,
+                offer_info_verification_model_name=self.model_name,
                 offer_country=offer_country
             ) # type: ignore
             result_state = self.node.extract_offer_info_node(state)

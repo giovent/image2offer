@@ -38,6 +38,7 @@ class ImageOfferCheckEval():
                     image=image_bytes,
                     image_mime_type="image/png",
                     offer_json={}, 
+                    offer_info_verification_model_name=None,
                     image_check_model_name=self.model_name
                 )
                 result_state = self.node.check_image_offer_node(state)
@@ -54,6 +55,7 @@ class ImageOfferCheckEval():
                     image=image_bytes,
                     image_mime_type="image/png",
                     offer_json={}, 
+                    offer_info_verification_model_name=None,
                     image_check_model_name=self.model_name
                 )
                 result_state = self.node.check_image_offer_node(state)
