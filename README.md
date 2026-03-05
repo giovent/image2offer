@@ -44,8 +44,7 @@ Example input image: Walmart flyer example from `webdemo_render` flow (`example_
       <img src="easy.png" alt="Conad flyer example input" />
     </td>
     <td width="55%" valign="top">
-      <b>Example final output</b> (2 offers, one per product):
-      <div style="max-height: 420px; overflow-y: auto; border: 1px solid #d0d7de; padding: 8px; border-radius: 6px; background-color: #f6f8fa;">
+      <div style="max-height: 100px; overflow-y: auto; border: 1px solid #d0d7de; padding: 8px; border-radius: 6px; background-color: #f6f8fa;">
         <pre><code>[
   {
     "offer_currency": "EUR",
@@ -116,16 +115,15 @@ Example input image: Walmart flyer example from `webdemo_render` flow (`example_
 ## Example - Hard Image
 
 No unit shown, 2+1 product bundle + buy-one-get-one, confusing pricing (avg 269), no original price.
-
+Final output shown was obtain using high high-reasoning models (gpt-5.2, Total input tokens: 203616, Total output tokens: 1856, cost: 0.2 USD)
 <table>
   <tr>
     <td width="45%" valign="top">
       <img src="hard.png" alt="Taiwan PXMart flyer example input" />
     </td>
     <td width="55%" valign="top">
-      <b>Example final output using high-reasoning models</b><br />
-      (gpt-5.2, Total input tokens: 203616, Total output tokens: 1856, cost: 0.2 USD)
-      <div style="max-height: 320px; overflow-y: auto; border: 1px solid #d0d7de; padding: 8px; border-radius: 6px; background-color: #f6f8fa;">
+      
+      <div style="max-height: 100px; overflow-y: auto; border: 1px solid #d0d7de; padding: 8px; border-radius: 6px; background-color: #f6f8fa;">
         <pre><code>[
   {
     "offer_currency": "TWD",
@@ -135,6 +133,22 @@ No unit shown, 2+1 product bundle + buy-one-get-one, confusing pricing (avg 269)
     "price_per_quantity_units": ["TWD/組"],
     "country_of_origin": "Taiwan",
     "offer_products": [
+      {
+        "country": "",
+        "brand": "Colgate",
+        "name": "高露潔 抗敏好口氣 牙 膏",
+        "image_url": "",
+        "barcodes": {
+          "EAN": ["4710168719848"],
+          "UPC": None,
+          "ASIN": None
+        },
+        "quantities": [3],
+        "units": ["條"],
+        "product_line": "全效 口氣健康專家",
+        "category": "牙膏",
+        "sub_category": "清新口氣／抗敏感"
+      },
       {
         "country": "",
         "brand": "Colgate",
