@@ -185,11 +185,11 @@ def _run_pipeline_job(job_id: str, image_bytes: bytes, image_mime_type: str, off
         image_mime_type=image_mime_type,
         offer_country=offer_country,
         image_check_model_name="gpt-5-nano",
-        image_decoding_model_name="gpt-4o",
-        offer_info_verification_model_name="gpt-4o",
-        product_enrichment_model_name="gpt-4o",
-        product_image_search_model_name="gpt-4o",
-        final_offer_composition_model_name="gpt-4o",
+        image_decoding_model_name="gpt-5.3",
+        offer_info_verification_model_name="gpt-5-nano",
+        product_enrichment_model_name="gpt-5.3",
+        product_image_search_model_name="gpt-5-nano",
+        final_offer_composition_model_name="gpt-5.3",
     )
 
     def on_trace_line(line: str) -> None:
