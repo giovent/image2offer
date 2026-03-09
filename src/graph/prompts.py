@@ -304,6 +304,7 @@ Rules:
 - Do not return mixed incompatible units for the same product (for example liters and bottles together).
 - prices_per_quantities and price_per_quantity_units are offer-level fields describing per-quantity prices (for example 10.22 with unit "USD/Piece"). The price_per_quantity should reflect exactly the units inside the products. If products are describes as "l", "bottles", the price_per_quantity should be currency/l, currency/bottle, etc.
 - If prices_per_quantities and price_per_quantity_units are not null, they must be arrays with the same length and aligned by index.
+- Note that the country of origin should be a much better indicator of the currency of each offer, reather than the products information or language.
 - Do not merge offers together, refine each offer reguardless of the other offers in the list provided.
 - Only return each product image_url if the link provided is valid and points to an image, not to a 404 webpage or any other resource.
 - Do not add any other fields. Do not comment on your answer.
